@@ -15,6 +15,10 @@
         </xd:desc>
     </xd:doc>
     
+    <!-- TO DO:
+        - add bibliographic information 
+    -->
+    
     <!-- include plain text functions -->
     <xsl:include href="https://rawgit.com/OpenAraPE/convert_tei-to-markdown/master/xslt/Tei2Md-functions.xsl"/>
     
