@@ -101,7 +101,13 @@
                 </xsl:for-each>
             </oap:array>
         </xsl:variable>
+        <xsl:variable name="v_url-mods" select="concat('../metadata/',ancestor::tei:TEI/@xml:id,'.MODS.xml')"/>
         <!-- output -->
+        <oap:item>
+            <oap:key>MODS</oap:key>
+            <oap:value><xsl:value-of select="$v_url-mods"/></oap:value>
+            
+        </oap:item>
         <oap:item>
             <oap:key>number of pages</oap:key>
             <oap:value><xsl:value-of select="$v_count-pages-all"/></oap:value>
