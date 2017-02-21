@@ -18,6 +18,9 @@
     </xd:doc>
     
     <xsl:output encoding="UTF-8" indent="yes" method="xml" omit-xml-declaration="no" version="1.0"/>
+
+    <!-- identify the author of the change by means of a @xml:id -->
+    <xsl:param name="p_id-editor" select="'pers_TG'"/>
     
     <!-- params to toggle certain links -->
     <xsl:param name="p_file-local" select="false()"/>
@@ -107,7 +110,7 @@
         <xsl:copy>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
-                <xsl:attribute name="who" select="'#pers_TG'"/>
+                <xsl:attribute name="who" select="$p_id-editor"/>
                 <xsl:text>Added </xsl:text><tei:gi>graphic</tei:gi><xsl:text> for </xsl:text>
                 <xsl:value-of select="$v_pages"/>
                 <xsl:text> pages with references to digital images.</xsl:text><!--<xsl:text> at HathiTrust and EAP.</xsl:text>-->
