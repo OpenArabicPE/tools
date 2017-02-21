@@ -57,10 +57,10 @@
             <xsl:apply-templates select="@*"/>
             <div type="masthead">
                 <bibl>
-                    <!--<xsl:copy-of select="$vBiblSource//tei:biblScope[@unit='issue']"/>-->
                     <xsl:element name="tei:biblScope">
                         <xsl:attribute name="unit" select="'issue'"/>
-                        <xsl:attribute name="n" select="$vBiblSource//tei:biblScope[@unit='issue']/@n"/>
+                        <xsl:attribute name="from" select="$vBiblSource//tei:biblScope[@unit='issue']/@from"/>
+                        <xsl:attribute name="to" select="$vBiblSource//tei:biblScope[@unit='issue']/@to"/>
                         <xsl:choose>
                             <xsl:when test="$vLang = 'ar'">
                                 <xsl:text>الجزء </xsl:text>
@@ -72,12 +72,29 @@
                                 <xsl:text>issue </xsl:text>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:value-of select="$vBiblSource//tei:biblScope[@unit='issue']/@n"/>
+<!--                        <xsl:value-of select="$vBiblSource//tei:biblScope[@unit='issue']/@n"/>-->
+                            <xsl:choose>
+                                <!-- check for correct encoding of issue information -->
+                                <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'issue']/@from = $vBiblSource//tei:biblScope[@unit = 'issue']/@to">
+                                    <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'issue']/@from"/>
+                                </xsl:when>
+                                <!-- check for ranges -->
+                                <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'issue']/@from != $vBiblSource//tei:biblScope[@unit = 'issue']/@to">
+                                    <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'issue']/@from"/>
+                                    <!-- probably an en-dash is the better option here -->
+                                    <xsl:text>/</xsl:text>
+                                    <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'issue']/@to"/>
+                                </xsl:when>
+                                <!-- fallback: erroneous encoding of issue information with @n -->
+                                <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'issue']/@n">
+                                    <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'issue']/@n"/>
+                                </xsl:when>
+                            </xsl:choose>
                     </xsl:element>
-<!--                    <xsl:copy-of select="$vBiblSource//tei:biblScope[@unit='volume']"/>-->
                     <xsl:element name="tei:biblScope">
                         <xsl:attribute name="unit" select="'volume'"/>
-                        <xsl:attribute name="n" select="$vBiblSource//tei:biblScope[@unit='volume']/@n"/>
+                        <xsl:attribute name="from" select="$vBiblSource//tei:biblScope[@unit='volume']/@from"/>
+                        <xsl:attribute name="to" select="$vBiblSource//tei:biblScope[@unit='volume']/@to"/>
                         <xsl:choose>
                             <xsl:when test="$vLang = 'ar'">
                                 <xsl:text>المجلد </xsl:text>
@@ -89,7 +106,23 @@
                                 <xsl:text>volume </xsl:text>
                             </xsl:otherwise>
                         </xsl:choose>
-                        <xsl:value-of select="$vBiblSource//tei:biblScope[@unit='volume']/@n"/>
+                        <xsl:choose>
+                            <!-- check for correct encoding of volume information -->
+                            <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'volume']/@from = $vBiblSource//tei:biblScope[@unit = 'volume']/@to">
+                                <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'volume']/@from"/>
+                            </xsl:when>
+                            <!-- check for ranges -->
+                            <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'volume']/@from != $vBiblSource//tei:biblScope[@unit = 'volume']/@to">
+                                <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'volume']/@from"/>
+                                <!-- probably an en-dash is the better option here -->
+                                <xsl:text>/</xsl:text>
+                                <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'volume']/@to"/>
+                            </xsl:when>
+                            <!-- fallback: erroneous encoding of volume information with @n -->
+                            <xsl:when test="$vBiblSource//tei:biblScope[@unit = 'volume']/@n">
+                                <xsl:value-of select="$vBiblSource//tei:biblScope[@unit = 'volume']/@n"/>
+                            </xsl:when>
+                        </xsl:choose>
                     </xsl:element>
                     <lb/>
                     <xsl:copy-of select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
