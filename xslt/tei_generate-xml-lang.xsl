@@ -18,6 +18,9 @@
     
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     
+    <!-- identify the author of the change by means of a @xml:id -->
+    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    
 <!--    <!-\- generate a new file -\->
     <xsl:template match="/">
         <!-\-<xsl:result-document href="{substring-before(base-uri(),'.TEIP5.xml')}_lang-codes.TEIP5.xml">-\->
@@ -38,6 +41,7 @@
         <xsl:copy>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
+                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:text>Added the </xsl:text><tei:att>xml:lang</tei:att><xsl:text> attribute to all nodes that lacked this attribute. The value is based on the closest ancestor.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="@* | node()"/>
