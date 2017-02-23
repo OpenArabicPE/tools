@@ -7,7 +7,9 @@
     xpath-default-namespace="http://www.tei-c.org/ns/1.0"
     exclude-result-prefixes="xs"
     version="2.0">
-    <xsl:output method="xml" encoding="UTF-8" indent="yes" omit-xml-declaration="no" name="xml"/>
+    
+    <xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="no" name="xml"/>
+    <xsl:output method="text" indent="yes" encoding="UTF-8" omit-xml-declaration="yes" name="text"/>
     
     <xd:doc scope="stylesheet">
         <xd:desc>
@@ -15,19 +17,14 @@
         </xd:desc>
     </xd:doc>
     
-    <!-- TO DO:
-        - add bibliographic information 
-    -->
-    
     <!-- include plain text functions -->
     <xsl:include href="https://rawgit.com/OpenAraPE/convert_tei-to-markdown/master/xslt/Tei2Md-functions.xsl"/>
     
+    <!-- include translator for JSON -->
+    <xsl:include href="oap-xml-to-json.xsl"/>
+    
     <xsl:template match="tei:TEI">
-        <xsl:result-document href="../statistics/{@xml:id}-stats.xml" format="xml">
-            <oap:array xml:id="{@xml:id}-stats">
                 <xsl:apply-templates select="descendant::tei:text"/>
-            </oap:array>
-        </xsl:result-document>
     </xsl:template>
     
     <xsl:template match="tei:text">
@@ -103,6 +100,8 @@
         </xsl:variable>
         <xsl:variable name="v_url-mods" select="concat('../metadata/',ancestor::tei:TEI/@xml:id,'.MODS.xml')"/>
         <!-- output -->
+        <xsl:variable name="v_array-result">
+            <oap:array xml:id="{@xml:id}-stats">
         <oap:item>
             <oap:key>MODS</oap:key>
             <oap:value><xsl:value-of select="$v_url-mods"/></oap:value>
@@ -152,6 +151,19 @@
             <oap:key>characters per article in sections</oap:key>
             <oap:value><xsl:value-of select="sum($v_count-characters-articles-in-sections/descendant::oap:value) div $v_count-articles-in-sections"/></oap:value>
         </oap:item>
+            </oap:array>
+        </xsl:variable>
+        <!-- JSON -->
+        <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats.json" format="text">
+            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json">
+            </xsl:apply-templates>
+        </xsl:result-document>
+        <!-- custom XML -->
+        <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats.xml" format="xml">
+            <!-- provide styling that looks like JSON -->
+            <xsl:value-of select="'&lt;?xml-stylesheet type=&quot;text/css&quot; href=&quot;../css/statistics.css&quot;?&gt;'" disable-output-escaping="yes"/>
+            <xsl:copy-of select="$v_array-result"/>
+        </xsl:result-document>
     </xsl:template>
     
     <!-- count words -->
