@@ -26,6 +26,7 @@
     </xsl:template>
     
     <xsl:template match="modsCollection">
+        <xsl:variable name="v_id-file" select=" replace(base-uri(),'.*(oclc_\d+).*','$1')"/>
         <xsl:variable name="v_array-result">
             <oap:array>
                 <xsl:for-each-group select="mods" group-by="descendant::name[role/roleTerm[@authority='marcrelator']='aut']">
@@ -72,62 +73,16 @@
             </oap:array>
         </xsl:variable>
         <!-- JSON -->
-        <xsl:result-document href="../statistics/{descendant-or-self::modsCollection/@ID}-stats.json" format="text">
+        <xsl:result-document href="../statistics/{$v_id-file}-stats_mods.json" format="text">
             <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json">
             </xsl:apply-templates>
         </xsl:result-document>
         <!-- custom XML -->
-        <xsl:result-document href="../statistics/{descendant-or-self::modsCollection/@ID}-stats.xml" format="xml">
+        <xsl:result-document href="../statistics/{$v_id-file}-stats_mods.xml" format="xml">
         <!-- provide styling that looks like JSON -->
         <xsl:value-of select="'&lt;?xml-stylesheet type=&quot;text/css&quot; href=&quot;../css/statistics.css&quot;?&gt;'" disable-output-escaping="yes"/>
             <xsl:copy-of select="$v_array-result"/>
         </xsl:result-document>
-    </xsl:template>
-    
-    <xsl:template match="oap:array" mode="m_oap-to-json">
-        <xsl:apply-templates select="oap:key" mode="m_oap-to-json"/>
-        <xsl:text> [</xsl:text>
-        <xsl:apply-templates select="node()[not(self::oap:key)]" mode="m_oap-to-json"/>
-        <xsl:text>]</xsl:text>
-        <xsl:if test="following-sibling::node()">
-            <xsl:text>, </xsl:text>
-        </xsl:if>
-    </xsl:template>
-    <xsl:template match="oap:object" mode="m_oap-to-json">
-        <xsl:apply-templates select="oap:key" mode="m_oap-to-json"/>
-        <xsl:text> {</xsl:text>
-        <xsl:apply-templates select="node()[not(self::oap:key)]" mode="m_oap-to-json"/>
-        <xsl:text>}</xsl:text>
-        <xsl:if test="following-sibling::node()">
-            <xsl:text>, </xsl:text>
-        </xsl:if>
-    </xsl:template>
-    <xsl:template match="oap:item" mode="m_oap-to-json">
-        <xsl:choose>
-            <xsl:when test="@key">
-                <xsl:text>"</xsl:text>
-                <xsl:apply-templates select="@key" mode="m_oap-to-json"/>
-                <xsl:text>": "</xsl:text>
-                <xsl:apply-templates mode="m_oap-to-json"/>
-                <xsl:text>"</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:apply-templates mode="m_oap-to-json"/>
-            </xsl:otherwise>
-        </xsl:choose>
-        <xsl:if test="following-sibling::node()">
-            <xsl:text>, </xsl:text>
-        </xsl:if>
-    </xsl:template>
-    <xsl:template match="oap:key" mode="m_oap-to-json">
-        <xsl:text>"</xsl:text>
-        <xsl:apply-templates mode="m_oap-to-json"/>
-        <xsl:text>": </xsl:text>
-    </xsl:template>
-    <xsl:template match="oap:value" mode="m_oap-to-json">
-        <xsl:text>"</xsl:text>
-        <xsl:apply-templates mode="m_oap-to-json"/>
-        <xsl:text>"</xsl:text>
     </xsl:template>
     
 </xsl:stylesheet>
