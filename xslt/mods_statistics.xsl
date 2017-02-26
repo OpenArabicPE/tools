@@ -65,12 +65,14 @@
                                 <xsl:variable name="v_pages">
                                     <oap:object>
                                         <xsl:for-each select="current-group()/descendant-or-self::mods">
+                                            <xsl:if test="descendant::extent[@unit='pages']/end!=''">
                                             <oap:item>
                                                 <oap:key>pages</oap:key>
                                                 <oap:value>
                                                     <xsl:value-of select="descendant::extent[@unit='pages']/end - descendant::extent[@unit='pages']/start +1"/>
                                                 </oap:value>
                                             </oap:item>
+                                            </xsl:if>
                                         </xsl:for-each>
                                     </oap:object>
                                 </xsl:variable>
