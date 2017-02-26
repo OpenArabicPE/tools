@@ -1,0 +1,31 @@
+@namespace oap url(https://openarape.github.io/ns);
+
+oap|* {
+   display:inline-block;
+}
+oap|array {
+	display: block;
+	clear: both;
+	width: 100%;
+	float: left;
+}
+oap|array:before/*, oap|item:before*/ {
+   color:red;
+   content: " [";
+}
+oap|array:after/*, oap|item:after*/ {
+   color:red;
+   content: "]";
+}
+oap|object:before/*, oap|item:before*/ {
+   color:red;
+   content: " {";
+}
+oap|object:after/*, oap|item:after*/ {
+   color:red;
+   content: "}";
+}
+oap|key:after {
+   color:red;
+   content: ": ";
+}
