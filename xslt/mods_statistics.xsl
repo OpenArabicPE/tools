@@ -76,6 +76,14 @@
                                         </xsl:for-each>
                                     </oap:object>
                                 </xsl:variable>
+                                <xsl:variable name="v_urls">
+                                    <oap:array>
+                                        <oap:key>urls</oap:key>
+                                        <xsl:for-each select="current-group()/descendant-or-self::mods">
+                                            <oap:value><xsl:value-of select="descendant::location/url"/></oap:value>
+                                        </xsl:for-each>
+                                    </oap:array>
+                                </xsl:variable>
                                 <oap:object>
                                     <oap:item>
                                         <oap:key>year</oap:key>
@@ -97,6 +105,8 @@
 <!--                                        <xsl:copy-of select="$v_pages"/>-->
                                         </oap:value>
                                     </oap:item>
+                                    <!-- URLs to articles -->
+                                    <xsl:copy-of select="$v_urls"></xsl:copy-of>
                                 </oap:object>
                             </xsl:for-each-group>
                         </oap:array>
