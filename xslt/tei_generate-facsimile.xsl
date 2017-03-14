@@ -86,6 +86,12 @@
     
     <xsl:variable name="v_id-facs" select="'facs_'"/>
     
+    <!-- count number of first-level divs in the file -->
+    <xsl:variable name="v_count-divs" select="number(count(tei:TEI/tei:text/tei:body/tei:div))"/>
+    <xsl:variable name="v_count-pb-per-div" select="floor($v_pages div $v_count-divs)"/>
+    
+    
+    <!-- generate the facsimile and reproduce the file -->
     <xsl:template match="tei:TEI">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
@@ -99,6 +105,10 @@
             </xsl:element>
             <xsl:apply-templates select="child::tei:text"/>
         </xsl:copy>
+        <!-- reporting and debugging -->
+        <xsl:message>
+            <xsl:text>There are </xsl:text><xsl:value-of select="$v_pages"/><xsl:text> in this file and on average </xsl:text><xsl:value-of select="$v_count-pb-per-div"/><xsl:text> per div.</xsl:text>
+        </xsl:message>
     </xsl:template>
     
     <!-- copy everything -->
@@ -107,6 +117,9 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
+    
+    
+    
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
