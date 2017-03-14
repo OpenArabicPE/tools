@@ -88,7 +88,7 @@
     
     <!-- count number of first-level divs in the file -->
     <xsl:variable name="v_count-divs" select="number(count(tei:TEI/tei:text/tei:body/tei:div))"/>
-    <xsl:variable name="v_count-pb-per-div" select="floor($v_pages div $v_count-divs)"/>
+    <xsl:variable name="v_count-pb-per-div" select="$v_pages div $v_count-divs"/>
     
     
     <!-- generate the facsimile and reproduce the file -->
@@ -107,8 +107,39 @@
         </xsl:copy>
         <!-- reporting and debugging -->
         <xsl:message>
-            <xsl:text>There are </xsl:text><xsl:value-of select="$v_pages"/><xsl:text> in this file and on average </xsl:text><xsl:value-of select="$v_count-pb-per-div"/><xsl:text> per div.</xsl:text>
+            <xsl:text>There are </xsl:text><xsl:value-of select="$v_pages"/><xsl:text> pages in this file and on average </xsl:text><xsl:value-of select="$v_count-pb-per-div"/><xsl:text> per div.</xsl:text>
         </xsl:message>
+    </xsl:template>
+   
+   <xsl:template match="tei:text">
+       <xsl:copy>
+           <xsl:apply-templates select="@*"/>
+           <xsl:apply-templates select="tei:front"/>
+           <xsl:apply-templates select="tei:body"/>
+           <xsl:choose>
+               <xsl:when test="tei:back">
+                   <xsl:apply-templates select="tei:back"/>
+               </xsl:when>
+               <xsl:otherwise>
+                   <xsl:variable name="v_back">
+                       <xsl:element name="tei:back"/>
+                   </xsl:variable>
+                   <xsl:apply-templates select="$v_back/descendant-or-self::tei:back"/>
+               </xsl:otherwise>
+           </xsl:choose>
+       </xsl:copy>
+   </xsl:template>
+    
+    <xsl:template match="tei:back">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:element name="div">
+                <xsl:call-template name="t_generate-pb">
+                    <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
+                    <xsl:with-param name="p_page-stop" select="number($v_page-start + $v_pages -1)"/>
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
     </xsl:template>
     
     <!-- copy everything -->
@@ -192,11 +223,11 @@
     <xsl:template name="t_generate-pb">
         <xsl:param name="p_page-start"/>
         <xsl:param name="p_page-stop"/>
-        <xsl:element name="tei:pb">
-            <xsl:attribute name="ed" select="'print'"/>
-            <xsl:attribute name="n" select="$p_page-start"/>
-            <xsl:attribute name="facs" select="concat('#',$v_id-facs,$p_page-start)"/>
-        </xsl:element>
+            <xsl:element name="tei:pb">
+                <xsl:attribute name="ed" select="'print'"/>
+                <xsl:attribute name="n" select="$p_page-start"/>
+                <xsl:attribute name="facs" select="concat('#',$v_id-facs,$p_page-start)"/>
+            </xsl:element>
         <xsl:if test="$p_page-start lt $p_page-stop">
             <xsl:call-template name="t_generate-pb">
                 <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
