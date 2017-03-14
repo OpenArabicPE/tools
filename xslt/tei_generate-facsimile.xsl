@@ -88,7 +88,7 @@
     
     <!-- count number of first-level divs in the file -->
     <xsl:variable name="v_count-divs" select="number(count(tei:TEI/tei:text/tei:body/tei:div))"/>
-    <xsl:variable name="v_count-pb-per-div" select="$v_pages div $v_count-divs"/>
+    <xsl:variable name="v_count-pb-per-div" select="round($v_pages div $v_count-divs)"/>
     
     
     <!-- generate the facsimile and reproduce the file -->
@@ -111,7 +111,7 @@
         </xsl:message>
     </xsl:template>
    
-   <xsl:template match="tei:text">
+   <!--<xsl:template match="tei:text">
        <xsl:copy>
            <xsl:apply-templates select="@*"/>
            <xsl:apply-templates select="tei:front"/>
@@ -128,9 +128,20 @@
                </xsl:otherwise>
            </xsl:choose>
        </xsl:copy>
-   </xsl:template>
+   </xsl:template>-->
     
-    <xsl:template match="tei:back">
+    <!-- add an approximate number of <pb>s after each <div> to ease the job for potential editors  -->
+    <xsl:template match="tei:body/tei:div">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+        <xsl:call-template name="t_generate-pb">
+            <xsl:with-param name="p_page-start" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + 1"/>
+            <xsl:with-param name="p_page-stop" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + $v_count-pb-per-div"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+   <!-- <xsl:template match="tei:back">
         <xsl:copy>
             <xsl:apply-templates select="@*|node()"/>
             <xsl:element name="div">
@@ -140,7 +151,7 @@
                 </xsl:call-template>
             </xsl:element>
         </xsl:copy>
-    </xsl:template>
+    </xsl:template>-->
     
     <!-- copy everything -->
     <xsl:template match="@* | node()">
