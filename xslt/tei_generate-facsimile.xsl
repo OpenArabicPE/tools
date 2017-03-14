@@ -54,11 +54,11 @@
     
     <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
     <xsl:param name="pEapIssueId" select="'191202'"/>
-    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't -->
+    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't; default is 0 -->
     <xsl:param name="pImgStartHathiDifference" select="0" as="xs:integer"/>
-    <!-- set-off between EAP image number and the printed edition -->
-    <xsl:param name="p_image-setoff_eap" select="1"/>
-    <!-- volume in HathTrust collection -->
+    <!-- set-off between EAP image number and the printed edition; default is 0 -->
+    <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
+    <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968624'"/>
     <!-- volume in EAP collection: needs to be set  -->
     <xsl:variable name="vEapVolumeId" select="'6'"/>
@@ -90,7 +90,7 @@
             <xsl:apply-templates select="child::tei:teiHeader"/>
             <xsl:element name="tei:facsimile">
                 <xsl:attribute name="xml:id" select="'facs'"/>
-                <xsl:call-template name="templCreateFacs">
+                <xsl:call-template name="t_generate-facsimile">
                     <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
                     <xsl:with-param name="p_page-stop" select="number($v_page-start + $v_pages -1)"/>
                 </xsl:call-template>
@@ -123,7 +123,7 @@
     </xsl:template>
     
     <!-- generate the facsimile -->
-    <xsl:template name="templCreateFacs">
+    <xsl:template name="t_generate-facsimile">
         <xsl:param name="p_page-start" select="1"/>
         <xsl:param name="p_page-stop" select="20"/>
         <xsl:variable name="vStartHathi" select="$p_page-start + $pImgStartHathiDifference"/>
@@ -167,7 +167,7 @@
             </xsl:if>
         </xsl:element>
         <xsl:if test="$p_page-start lt $p_page-stop">
-            <xsl:call-template name="templCreateFacs">
+            <xsl:call-template name="t_generate-facsimile">
                 <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
                 <xsl:with-param name="p_page-stop" select="$p_page-stop"/>
             </xsl:call-template>
