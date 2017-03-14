@@ -31,6 +31,7 @@
     <!-- variables based on the input file -->
     <xsl:variable name="v_volume" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='volume']/@n"/>
     <xsl:variable name="v_issue" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='issue']/@n"/>
+    <!-- first page of the issue -->
     <xsl:variable name="v_page-start" as="xs:integer">
         <xsl:choose>
             <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from">
@@ -41,6 +42,7 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
+    <!-- total number of pages in this issue -->
     <xsl:variable name="v_pages" as="xs:integer">
         <xsl:choose>
             <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from and //tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@to">
@@ -168,6 +170,22 @@
         </xsl:element>
         <xsl:if test="$p_page-start lt $p_page-stop">
             <xsl:call-template name="t_generate-facsimile">
+                <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
+                <xsl:with-param name="p_page-stop" select="$p_page-stop"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="t_generate-pb">
+        <xsl:param name="p_page-start"/>
+        <xsl:param name="p_page-stop"/>
+        <xsl:element name="tei:pb">
+            <xsl:attribute name="ed" select="'print'"/>
+            <xsl:attribute name="n" select="$p_page-start"/>
+            <xsl:attribute name="facs" select="concat('#',$v_id-facs,$p_page-start)"/>
+        </xsl:element>
+        <xsl:if test="$p_page-start lt $p_page-stop">
+            <xsl:call-template name="t_generate-pb">
                 <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
                 <xsl:with-param name="p_page-stop" select="$p_page-stop"/>
             </xsl:call-template>
