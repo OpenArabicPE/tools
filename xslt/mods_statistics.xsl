@@ -23,11 +23,12 @@
     </xsl:template>
 
     <xsl:template match="modsCollection">
-        <xsl:variable name="v_id-file" select="replace(base-uri(), '.*(oclc_\d+).*', '$1')"/>
+        <xsl:variable name="v_id-file" select="replace(base-uri(), '.*(oclc_\d+)(-i_\d+)?.*', '$1$2')"/>
         <xsl:variable name="v_array-result">
             <oap:array>
+                <!-- group by author: check if viaf references are available -->
                 <xsl:for-each-group select="mods"
-                    group-by="descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']">
+                    group-by="if(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@authority='viaf') then(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@valueURI) else(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut'])">
                     <xsl:sort select="current-group()[1]/descendant::name[1]"/>
                     <!-- generate author names -->
                     <xsl:variable name="v_author">
