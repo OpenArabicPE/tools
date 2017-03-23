@@ -3,6 +3,9 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc" xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns:bgn="http://bibliograph.net/" xmlns:genont="http://www.w3.org/2006/gen/ont#" xmlns:pto="http://www.productontology.org/id/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:re="http://oclcsrw.google.code/redirect" xmlns:schema="http://schema.org/" xmlns:umbel="http://umbel.org/umbel#"
+    xmlns:srw="http://www.loc.gov/zing/srw/"
+    xmlns:viaf="http://viaf.org/viaf/terms#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:xi="http://www.w3.org/2001/XInclude" xpath-default-namespace="http://www.tei-c.org/ns/1.0"
     exclude-result-prefixes="xs xd xi dc opf html" version="2.0">
     
@@ -11,7 +14,7 @@
     
    
     
-    <!-- query VIAF -->
+    <!-- query VIAF and return RDF -->
     <xsl:template name="t_query-viaf-rdf">
         <xsl:param name="p_viaf-id"/>
         <xsl:variable name="v_viaf-rdf" select="doc(concat('https://viaf.org/viaf/',$p_viaf-id,'/rdf.xml'))"/>
@@ -25,7 +28,7 @@
         <xsl:apply-templates select="$v_viaf-rdf//rdf:RDF/rdf:Description/schema:deathDate"/>
     </xsl:template>
     
-    <xsl:template match="schema:birthDate">
+    <xsl:template match="schema:birthDate | viaf:birthDate">
         <xsl:element name="tei:birth">
             <xsl:call-template name="t_dates-normalise">
                 <xsl:with-param name="p_input" select="."/>
@@ -33,12 +36,42 @@
         </xsl:element>
     </xsl:template>
     
-    <xsl:template match="schema:deathDate">
+    <xsl:template match="schema:deathDate | viaf:deathDate">
         <xsl:element name="tei:death">
             <xsl:call-template name="t_dates-normalise">
                 <xsl:with-param name="p_input" select="."/>
             </xsl:call-template>
         </xsl:element>
+    </xsl:template>
+    
+    <!-- query VIAF using SRU -->
+    <xsl:template name="t_query-viaf-sru">
+        <xsl:param name="p_search-term"/>
+        <xsl:param name="p_input-type"/>
+        <xsl:param name="p_records-max" select="3"/>
+        <xsl:variable name="v_viaf-sru">
+            <xsl:choose>
+                <xsl:when test="$p_input-type='id'">
+                    <xsl:copy-of select="doc(concat('https://viaf.org/viaf/search?query=local.viafID+any+&quot;',$p_search-term,'&quot;&amp;httpAccept=application/xml'))"/>
+                </xsl:when>
+                <xsl:when test="$p_input-type='persName'">
+                    <xsl:copy-of select="doc(concat('https://viaf.org/viaf/search?query=local.personalNames+any+&quot;',$p_search-term,'&quot;','&amp;maximumRecords=',$p_records-max,'&amp;httpAccept=application/xml'))"/>
+                </xsl:when>
+                <xsl:otherwise>
+                    <xsl:copy-of select="doc(concat('https://viaf.org/viaf/search?query=cql.any+all+',$p_search-term,'&amp;maximumRecords=',$p_records-max,'&amp;httpAccept=application/xml'))"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:variable name="v_record-1" select="$v_viaf-sru/descendant-or-self::srw:searchRetrieveResponse/srw:records/srw:record[1]/srw:recordData[@xsi:type='ns1:stringOrXmlFragment']/viaf:VIAFCluster"/>
+        <xsl:variable name="v_viaf-id" select="$v_record-1//viaf:viafID"/>
+        <!-- add VIAF ID -->
+        <xsl:element name="tei:idno">
+            <xsl:attribute name="type" select="'viaf'"/>
+            <xsl:value-of select="$v_viaf-id"/>
+        </xsl:element>
+        <!-- add birth and death dates -->
+        <xsl:apply-templates select="$v_record-1//viaf:birthDate"/>
+        <xsl:apply-templates select="$v_record-1//viaf:deathDate"/>
     </xsl:template>
     
     <xsl:template name="t_dates-normalise">
