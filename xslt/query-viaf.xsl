@@ -15,6 +15,12 @@
     <xsl:template name="t_query-viaf-rdf">
         <xsl:param name="p_viaf-id"/>
         <xsl:variable name="v_viaf-rdf" select="doc(concat('https://viaf.org/viaf/',$p_viaf-id,'/rdf.xml'))"/>
+        <!-- add VIAF ID -->
+        <xsl:element name="tei:idno">
+            <xsl:attribute name="type" select="'viaf'"/>
+            <xsl:value-of select="$p_viaf-id"/>
+        </xsl:element>
+        <!-- add birth and death dates -->
         <xsl:apply-templates select="$v_viaf-rdf//rdf:RDF/rdf:Description/schema:birthDate"/>
         <xsl:apply-templates select="$v_viaf-rdf//rdf:RDF/rdf:Description/schema:deathDate"/>
     </xsl:template>
