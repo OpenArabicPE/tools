@@ -111,10 +111,11 @@
                 <xsl:apply-templates select="@*"/>
                 <xsl:apply-templates select="node()" mode="m_extract"/>
             </xsl:copy>
-            <!-- try to call the VIAF API -->
+            <!-- try to query the VIAF API  for dates etc.-->
             <xsl:if test="matches(@ref,'viaf:\d+')">
+                <xsl:variable name="v_viaf-id" select="replace(@ref,'viaf:(\d+)','$1')"/>
                 <xsl:call-template name="t_query-viaf-rdf">
-                    <xsl:with-param name="p_viaf-id" select="replace(@ref,'viaf:(\d+)','$1')"/>
+                    <xsl:with-param name="p_viaf-id" select="$v_viaf-id"/>
                 </xsl:call-template>
             </xsl:if>
         </xsl:element>
