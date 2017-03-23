@@ -8,7 +8,12 @@
     
     <!-- this stylesheet extracts all <persName> elements from a TEI XML file and groups them into a <listPerson> element. Similarly, it extracts all <placeName> elements and creates a <listPlace> with the toponyms nested as child elements -->
     <!-- this stylesheet also tries to query external authority files if they are linked through the @ref attribute -->
-    <xsl:output method="xml" indent="yes" exclude-result-prefixes="#all"/>
+    <xsl:output method="xml" encoding="UTF-8" indent="yes" exclude-result-prefixes="#all"/>
+    
+    <xsl:include href="query-viaf.xsl"/>
+    
+    <xsl:param name="p_file-entities-master"/>
+    <xsl:param name="p_id-editor" select="'pers_TG'"/>
     
     <xsl:template match="tei:TEI">
         <xsl:copy>
@@ -193,32 +198,6 @@
                 </xsl:attribute>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:template>
-    
-    <!-- query VIAF -->
-    <xsl:template name="t_query-viaf-rdf">
-        <xsl:param name="p_viaf-id"/>
-        <xsl:variable name="v_viaf-rdf" select="doc(concat('https://viaf.org/viaf/',$p_viaf-id,'/rdf.xml'))"/>
-        <xsl:apply-templates select="$v_viaf-rdf//rdf:RDF/rdf:Description/schema:birthDate"/>
-        <xsl:apply-templates select="$v_viaf-rdf//rdf:RDF/rdf:Description/schema:deathDate"/>
-    </xsl:template>
-    
-    <xsl:template match="schema:birthDate">
-        <xsl:element name="tei:birth">
-            <xsl:element name="tei:date">
-                <xsl:attribute name="when" select="."/>
-                <xsl:value-of select="."/>
-            </xsl:element>
-        </xsl:element>
-    </xsl:template>
-    
-    <xsl:template match="schema:deathDate">
-        <xsl:element name="tei:death">
-            <xsl:element name="tei:date">
-                <xsl:attribute name="when" select="."/>
-                <xsl:value-of select="."/>
-            </xsl:element>
-        </xsl:element>
     </xsl:template>
     
     
