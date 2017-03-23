@@ -19,6 +19,8 @@
     
     <!-- identify the author of the change by means of a @xml:id -->
     <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    <!-- parameter to select whether output of numerals should be converted into Arabic script or not -->
+    <xsl:param name="p_convert-to-arabic" select="false()"/>
     
     
     <xsl:variable name="v_string-transcribe-ijmes" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāūīwy0123456789'"/>
@@ -65,9 +67,24 @@
                     <xsl:attribute name="type" select="'auto-markup'"/>
                     <xsl:attribute name="resp" select="concat('#',$p_id-editor)"/>
                     <xsl:attribute name="value" select="$v_value"/>
-                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                    <xsl:value-of select="translate(format-number($v_value,'###.##0,##','ar_default'),$v_string-transcribe-ijmes,$v_string-transcribe-arabic)"/>
-                    <!--<xsl:value-of select=" translate(., $vStringTranscribeFromIjmes,$vStringTranscribeToArabic)"/>-->
+                    <xsl:attribute name="xml:lang">
+                        <xsl:choose>
+                        <xsl:when test="$p_convert-to-arabic = true()">
+                            <xsl:value-of select="'ar'"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="'en'"/>
+                        </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:attribute>
+                    <xsl:choose>
+                        <xsl:when test="$p_convert-to-arabic = true()">
+                            <xsl:value-of select="translate(format-number($v_value,'###.##0,##','ar_default'),$v_string-transcribe-ijmes,$v_string-transcribe-arabic)"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="format-number($v_value,'###.##0,##','ar_default')"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
                 </xsl:element>
                 <xsl:text> </xsl:text>
             </xsl:matching-substring>
