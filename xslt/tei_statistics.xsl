@@ -14,8 +14,7 @@
     </xd:doc>
 
     <!-- include plain text functions -->
-    <xsl:include
-        href="https://rawgit.com/OpenAraPE/convert_tei-to-markdown/master/xslt/Tei2Md-functions.xsl"/>
+    <xsl:include href="https://rawgit.com/OpenArabicPE/convert_tei-to-markdown/master/xslt/Tei2Md-functions.xsl"/>
 
     <!-- include translator for JSON -->
     <xsl:include href="oap-xml-to-json.xsl"/>

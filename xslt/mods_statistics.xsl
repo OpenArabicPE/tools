@@ -23,11 +23,12 @@
     </xsl:template>
 
     <xsl:template match="modsCollection">
-        <xsl:variable name="v_id-file" select="replace(base-uri(), '.*(oclc_\d+).*', '$1')"/>
+        <xsl:variable name="v_id-file" select="replace(base-uri(), '.*(oclc_\d+)(-i_\d+)?.*', '$1$2')"/>
         <xsl:variable name="v_array-result">
             <oap:array>
+                <!-- group by author: check if viaf references are available -->
                 <xsl:for-each-group select="mods"
-                    group-by="descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']">
+                    group-by="if(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@authority='viaf') then(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@valueURI) else(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut'])">
                     <xsl:sort select="current-group()[1]/descendant::name[1]"/>
                     <!-- generate author names -->
                     <xsl:variable name="v_author">
@@ -76,6 +77,14 @@
                                         </xsl:for-each>
                                     </oap:object>
                                 </xsl:variable>
+                                <xsl:variable name="v_urls">
+                                    <oap:array>
+                                        <oap:key>urls</oap:key>
+                                        <xsl:for-each select="current-group()/descendant-or-self::mods">
+                                            <oap:value><xsl:value-of select="descendant::location/url"/></oap:value>
+                                        </xsl:for-each>
+                                    </oap:array>
+                                </xsl:variable>
                                 <oap:object>
                                     <oap:item>
                                         <oap:key>year</oap:key>
@@ -97,6 +106,8 @@
 <!--                                        <xsl:copy-of select="$v_pages"/>-->
                                         </oap:value>
                                     </oap:item>
+                                    <!-- URLs to articles -->
+                                    <xsl:copy-of select="$v_urls"></xsl:copy-of>
                                 </oap:object>
                             </xsl:for-each-group>
                         </oap:array>

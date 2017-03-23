@@ -44,6 +44,9 @@
         <xsl:text>"</xsl:text>
         <xsl:apply-templates mode="m_oap-to-json"/>
         <xsl:text>"</xsl:text>
+        <xsl:if test="following-sibling::node()">
+            <xsl:text>, </xsl:text>
+        </xsl:if>
     </xsl:template>
     
 </xsl:stylesheet>

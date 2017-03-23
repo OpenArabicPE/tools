@@ -31,6 +31,7 @@
     <!-- variables based on the input file -->
     <xsl:variable name="v_volume" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='volume']/@n"/>
     <xsl:variable name="v_issue" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='issue']/@n"/>
+    <!-- first page of the issue -->
     <xsl:variable name="v_page-start" as="xs:integer">
         <xsl:choose>
             <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from">
@@ -41,6 +42,7 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
+    <!-- total number of pages in this issue -->
     <xsl:variable name="v_pages" as="xs:integer">
         <xsl:choose>
             <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from and //tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@to">
@@ -54,11 +56,11 @@
     
     <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
     <xsl:param name="pEapIssueId" select="'191202'"/>
-    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't -->
+    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't; default is 0 -->
     <xsl:param name="pImgStartHathiDifference" select="0" as="xs:integer"/>
-    <!-- set-off between EAP image number and the printed edition -->
-    <xsl:param name="p_image-setoff_eap" select="1"/>
-    <!-- volume in HathTrust collection -->
+    <!-- set-off between EAP image number and the printed edition; default is 0 -->
+    <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
+    <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968624'"/>
     <!-- volume in EAP collection: needs to be set  -->
     <xsl:variable name="vEapVolumeId" select="'6'"/>
@@ -84,20 +86,72 @@
     
     <xsl:variable name="v_id-facs" select="'facs_'"/>
     
+    <!-- count number of first-level divs in the file -->
+    <xsl:variable name="v_count-divs" select="number(count(tei:TEI/tei:text/tei:body/tei:div))"/>
+    <xsl:variable name="v_count-pb-per-div" select="round($v_pages div $v_count-divs)"/>
+    
+    
+    <!-- generate the facsimile and reproduce the file -->
     <xsl:template match="tei:TEI">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:apply-templates select="child::tei:teiHeader"/>
             <xsl:element name="tei:facsimile">
                 <xsl:attribute name="xml:id" select="'facs'"/>
-                <xsl:call-template name="templCreateFacs">
+                <xsl:call-template name="t_generate-facsimile">
                     <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
                     <xsl:with-param name="p_page-stop" select="number($v_page-start + $v_pages -1)"/>
                 </xsl:call-template>
             </xsl:element>
             <xsl:apply-templates select="child::tei:text"/>
         </xsl:copy>
+        <!-- reporting and debugging -->
+        <xsl:message>
+            <xsl:text>There are </xsl:text><xsl:value-of select="$v_pages"/><xsl:text> pages in this file and on average </xsl:text><xsl:value-of select="$v_count-pb-per-div"/><xsl:text> per div.</xsl:text>
+        </xsl:message>
     </xsl:template>
+   
+   <!--<xsl:template match="tei:text">
+       <xsl:copy>
+           <xsl:apply-templates select="@*"/>
+           <xsl:apply-templates select="tei:front"/>
+           <xsl:apply-templates select="tei:body"/>
+           <xsl:choose>
+               <xsl:when test="tei:back">
+                   <xsl:apply-templates select="tei:back"/>
+               </xsl:when>
+               <xsl:otherwise>
+                   <xsl:variable name="v_back">
+                       <xsl:element name="tei:back"/>
+                   </xsl:variable>
+                   <xsl:apply-templates select="$v_back/descendant-or-self::tei:back"/>
+               </xsl:otherwise>
+           </xsl:choose>
+       </xsl:copy>
+   </xsl:template>-->
+    
+    <!-- add an approximate number of <pb>s after each <div> to ease the job for potential editors  -->
+    <xsl:template match="tei:body/tei:div">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+        <xsl:call-template name="t_generate-pb">
+            <xsl:with-param name="p_page-start" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + 1"/>
+            <xsl:with-param name="p_page-stop" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + $v_count-pb-per-div"/>
+        </xsl:call-template>
+    </xsl:template>
+    
+   <!-- <xsl:template match="tei:back">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+            <xsl:element name="div">
+                <xsl:call-template name="t_generate-pb">
+                    <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
+                    <xsl:with-param name="p_page-stop" select="number($v_page-start + $v_pages -1)"/>
+                </xsl:call-template>
+            </xsl:element>
+        </xsl:copy>
+    </xsl:template>-->
     
     <!-- copy everything -->
     <xsl:template match="@* | node()">
@@ -105,6 +159,9 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
+    
+    
+    
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
@@ -123,7 +180,7 @@
     </xsl:template>
     
     <!-- generate the facsimile -->
-    <xsl:template name="templCreateFacs">
+    <xsl:template name="t_generate-facsimile">
         <xsl:param name="p_page-start" select="1"/>
         <xsl:param name="p_page-stop" select="20"/>
         <xsl:variable name="vStartHathi" select="$p_page-start + $pImgStartHathiDifference"/>
@@ -167,7 +224,23 @@
             </xsl:if>
         </xsl:element>
         <xsl:if test="$p_page-start lt $p_page-stop">
-            <xsl:call-template name="templCreateFacs">
+            <xsl:call-template name="t_generate-facsimile">
+                <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
+                <xsl:with-param name="p_page-stop" select="$p_page-stop"/>
+            </xsl:call-template>
+        </xsl:if>
+    </xsl:template>
+    
+    <xsl:template name="t_generate-pb">
+        <xsl:param name="p_page-start"/>
+        <xsl:param name="p_page-stop"/>
+            <xsl:element name="tei:pb">
+                <xsl:attribute name="ed" select="'print'"/>
+                <xsl:attribute name="n" select="$p_page-start"/>
+                <xsl:attribute name="facs" select="concat('#',$v_id-facs,$p_page-start)"/>
+            </xsl:element>
+        <xsl:if test="$p_page-start lt $p_page-stop">
+            <xsl:call-template name="t_generate-pb">
                 <xsl:with-param name="p_page-start" select="$p_page-start +1"/>
                 <xsl:with-param name="p_page-stop" select="$p_page-stop"/>
             </xsl:call-template>
