@@ -31,8 +31,16 @@
     <xsl:template match="tei:person[tei:persName[matches(@ref,'viaf:\d+')]]">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
-            <xsl:call-template name="t_query-viaf-rdf">
+            <!--<xsl:call-template name="t_query-viaf-rdf">
                 <xsl:with-param name="p_viaf-id" select="replace(tei:persName[matches(@ref,'viaf:\d+')][1]/@ref,'viaf:(\d+)','$1')"/>
+            </xsl:call-template>-->
+            <xsl:call-template name="t_query-viaf-sru">
+                <!--<xsl:with-param name="p_search-term" select="replace(tei:persName[matches(@ref,'viaf:\d+')][1]/@ref,'viaf:(\d+)','$1')"/>
+                <xsl:with-param name="p_input-type" select="'id'"/>-->
+                <xsl:with-param name="p_search-term">
+                    <xsl:value-of select="normalize-space(tei:persName[1])"/>
+                </xsl:with-param>
+                <xsl:with-param name="p_input-type" select="'persName'"/>
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
