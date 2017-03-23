@@ -27,20 +27,54 @@
     
     <xsl:template match="schema:birthDate">
         <xsl:element name="tei:birth">
-            <xsl:element name="tei:date">
-                <xsl:attribute name="when" select="."/>
-                <xsl:value-of select="."/>
-            </xsl:element>
+            <xsl:call-template name="t_dates-normalise">
+                <xsl:with-param name="p_input" select="."/>
+            </xsl:call-template>
         </xsl:element>
     </xsl:template>
     
     <xsl:template match="schema:deathDate">
         <xsl:element name="tei:death">
-            <xsl:element name="tei:date">
-                <xsl:attribute name="when" select="."/>
-                <xsl:value-of select="."/>
-            </xsl:element>
+            <xsl:call-template name="t_dates-normalise">
+                <xsl:with-param name="p_input" select="."/>
+            </xsl:call-template>
         </xsl:element>
+    </xsl:template>
+    
+    <xsl:template name="t_dates-normalise">
+        <!-- the dates returned by VIAF can be formatted as
+            - yyyy-mm-dd: no issue
+            - yyy-mm-dd: the year needs an additional leading 0
+            - yyyy-mm-00: this indicates a date range of a full month
+        -->
+        <xsl:param name="p_input"/>
+        <xsl:analyze-string select="$p_input" regex="(\d{{4}})$|(\d{{3,4}})-(\d{{2}})-(\d{{2}})$">
+            <xsl:matching-substring>
+                <xsl:element name="tei:date">
+                    <xsl:variable name="v_year">
+                        <xsl:value-of select="format-number(number(regex-group(2)),'0000')"/>
+                    </xsl:variable>
+                    <xsl:variable name="v_month">
+                        <xsl:value-of select="format-number(number(regex-group(3)),'00')"/>
+                    </xsl:variable>
+                    <!-- check if the result is a date range -->
+                    <xsl:choose>
+                        <xsl:when test="regex-group(4)='00'">
+                            <xsl:attribute name="notBefore" select="concat($v_year,'-',$v_month,'-01')"/>
+                            <!-- in order to not produce invalid dates, we pretend that all Gregorian months have only 28 days-->
+                            <xsl:attribute name="notAfter" select="concat($v_year,'-',$v_month,'-28')"/>
+                        </xsl:when>
+                        <xsl:when test="regex-group(2)">
+                            <xsl:attribute name="when" select="concat($v_year,'-',$v_month,'-',regex-group(4))"/>
+                        </xsl:when>
+                        <xsl:when test="regex-group(1)">
+                            <xsl:attribute name="when" select="regex-group(1)"/>
+                        </xsl:when>
+                    </xsl:choose>
+                    <xsl:value-of select="$p_input"/>
+                </xsl:element>
+            </xsl:matching-substring>
+        </xsl:analyze-string>
     </xsl:template>
     
     
