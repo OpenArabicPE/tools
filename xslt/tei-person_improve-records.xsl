@@ -18,6 +18,15 @@
         </xsl:copy>
     </xsl:template>
     
+    <xsl:template match="tei:listPerson">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="tei:person">
+                <xsl:sort select="tei:persName[tei:surname][1]/tei:surname"/>
+            </xsl:apply-templates>
+        </xsl:copy>
+    </xsl:template>
+    
     <!-- improve tei:person records -->
     <xsl:template match="tei:person[tei:persName[matches(@ref,'viaf:\d+')]]">
         <xsl:copy>
@@ -27,4 +36,7 @@
             </xsl:call-template>
         </xsl:copy>
     </xsl:template>
+    
+    <!-- omit existing records -->
+    <xsl:template match="tei:person/tei:idno | tei:person/tei:birth | tei:person/tei:death"/>
 </xsl:stylesheet>
