@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:mods="http://www.loc.gov/mods/v3" xmlns:oap="https://openarape.github.io/ns"
+    xmlns:mods="http://www.loc.gov/mods/v3" xmlns:oap="https://openarabicpe.github.io/ns"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xpath-default-namespace="http://www.loc.gov/mods/v3" exclude-result-prefixes="xs xd"
     version="2.0">
@@ -17,6 +17,8 @@
 
     <!-- include translator for JSON -->
     <xsl:include href="oap-xml-to-json.xsl"/>
+    
+    <xsl:param name="p_file-entities-master" select="doc('../../authority-files/tei/entities_master.TEIP5.xml')"/>
 
     <xsl:template match="/">
         <xsl:apply-templates/>
@@ -30,6 +32,10 @@
                 <xsl:for-each-group select="mods"
                     group-by="if(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@authority='viaf') then(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@valueURI) else(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut'])">
                     <xsl:sort select="current-group()[1]/descendant::name[1]"/>
+                    <!-- VIAF ID of authors: if present this is the current-grouping-key(). this can be used for querying $p_file-entities-master for additional information -->
+                    <xsl:variable name="v_id-viaf" select="substring-after(current-grouping-key(),'https://viaf.org/viaf/')"/>
+                    <xsl:variable name="v_person-author"  select="$p_file-entities-master//tei:person[tei:idno[@type='viaf']=$v_id-viaf]"/>
+                    
                     <!-- generate author names -->
                     <xsl:variable name="v_author">
                         <xsl:for-each select="current-group()[1]/descendant::name[1]/namePart[@type = 'given']">
@@ -46,6 +52,12 @@
                             <oap:key>name</oap:key>
                             <oap:value>
                                 <xsl:value-of select="normalize-space($v_author)"/>
+                            </oap:value>
+                        </oap:item>
+                        <oap:item>
+                            <oap:key>viaf</oap:key>
+                            <oap:value>
+                                <xsl:value-of select="normalize-space($v_id-viaf)"/>
                             </oap:value>
                         </oap:item>
                         <!-- articles -->
@@ -85,11 +97,32 @@
                                         </xsl:for-each>
                                     </oap:array>
                                 </xsl:variable>
+                                <!-- age of author at publication -->
+                                <xsl:variable name="v_age-author">
+                                    <xsl:choose>
+                                        <xsl:when test="number($v_person-author//tei:death[1]/@when) - number(current-grouping-key()) &lt; 0">
+                                            <xsl:text>dead</xsl:text>
+                                        </xsl:when>
+                                        <xsl:when test="$v_person-author//tei:birth[1]/@when">
+                                            <xsl:value-of select=" number(current-grouping-key())- number(substring($v_person-author//tei:birth[1]/@when,1,4))"/>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:text>unknown</xsl:text>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:variable>
                                 <oap:object>
                                     <oap:item>
                                         <oap:key>year</oap:key>
                                         <oap:value>
                                             <xsl:value-of select="current-grouping-key()"/>
+                                        </oap:value>
+                                    </oap:item>
+                                    <!-- age at publication -->
+                                    <oap:item>
+                                        <oap:key>age</oap:key>
+                                        <oap:value>
+                                            <xsl:value-of select="$v_age-author"/>
                                         </oap:value>
                                     </oap:item>
                                     <!-- articles per year -->
