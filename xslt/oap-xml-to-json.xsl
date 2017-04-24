@@ -3,7 +3,7 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:mods="http://www.loc.gov/mods/v3"
-    xmlns:oap="https://openarape.github.io/ns"
+    xmlns:oap="https://openarabicpe.github.io/ns"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xpath-default-namespace="http://www.loc.gov/mods/v3"
     exclude-result-prefixes="xs xd"
