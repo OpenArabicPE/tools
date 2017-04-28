@@ -18,6 +18,8 @@
 
     <!-- include translator for JSON -->
     <xsl:include href="oap-xml-to-json.xsl"/>
+    <!-- include translator for CSV -->
+    <xsl:include href="oap-xml-to-csv.xsl"/>
 
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
@@ -203,8 +205,7 @@
         <!-- JSON -->
         <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.json"
             format="text">
-            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json">
-            </xsl:apply-templates>
+            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json"/>
         </xsl:result-document>
         <!-- custom XML -->
         <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.xml"
@@ -214,6 +215,10 @@
                 select="'&lt;?xml-stylesheet type=&quot;text/css&quot; href=&quot;../css/statistics.css&quot;?>'"
                 disable-output-escaping="yes"/>
             <xsl:copy-of select="$v_array-result"/>
+        </xsl:result-document>
+        <!-- CSV -->
+        <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.csv" format="text">
+            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-csv"/>
         </xsl:result-document>
     </xsl:template>
 
