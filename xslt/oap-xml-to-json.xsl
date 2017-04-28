@@ -8,7 +8,8 @@
     xpath-default-namespace="http://www.loc.gov/mods/v3"
     exclude-result-prefixes="xs xd"
     version="2.0">
-   
+    
+    <!-- this stylesheet converts the custom XML used for statistical output of OpenArabicPE to JSON -->
     
     <xsl:template match="oap:array" mode="m_oap-to-json">
         <xsl:apply-templates select="oap:key" mode="m_oap-to-json"/>
