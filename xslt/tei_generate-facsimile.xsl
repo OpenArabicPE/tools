@@ -23,19 +23,67 @@
     <xsl:param name="p_id-editor" select="'pers_TG'"/>
     
     <!-- params to toggle certain links -->
-    <xsl:param name="p_file-local" select="false()"/>
-    <xsl:param name="p_file-hathi" select="false()"/>
-    <xsl:param name="p_file-eap" select="true()"/>
+    <xsl:param name="p_file-local" select="true()"/>
+    <xsl:param name="p_file-hathi" select="true()"/>
+    <xsl:param name="p_file-eap" select="false()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
     
+    <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
+    <xsl:param name="pEapIssueId" select="'191202'"/>
+    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't; default is 0 -->
+    <xsl:param name="pImgStartHathiDifference" select="4" as="xs:integer"/>
+    <!-- set-off between EAP image number and the printed edition; default is 0 -->
+    <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
+    <!-- volume in HathTrust collection: needs to be set -->
+    <xsl:variable name="vHathiTrustId" select="'njp.32101007615691'"/>
+    <!-- volume in EAP collection: needs to be set  -->
+    <xsl:variable name="vEapVolumeId" select="'6'"/>
+    
     <!-- variables based on the input file -->
-    <xsl:variable name="v_volume" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='volume']/@n"/>
-    <xsl:variable name="v_issue" select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='issue']/@n"/>
+    <xsl:variable name="v_biblStructSource" select="//tei:sourceDesc/tei:biblStruct"/>
+    <xsl:variable name="v_volume">
+        <xsl:choose>
+            <!-- check for correct encoding of volume information -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@from = $v_biblStructSource//tei:biblScope[@unit = 'volume']/@to">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@from"/>
+            </xsl:when>
+            <!-- check for ranges -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@from != $v_biblStructSource//tei:biblScope[@unit = 'volume']/@to">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@from"/>
+                <!-- probably an en-dash is the better option here -->
+                <xsl:text>/</xsl:text>
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@to"/>
+            </xsl:when>
+            <!-- fallback: erroneous encoding of volume information with @n -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@n">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'volume']/@n"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="v_issue">
+        <xsl:choose>
+            <!-- check for correct encoding of issue information -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@from = $v_biblStructSource//tei:biblScope[@unit = 'issue']/@to">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@from"/>
+            </xsl:when>
+            <!-- check for ranges -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@from != $v_biblStructSource//tei:biblScope[@unit = 'issue']/@to">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@from"/>
+                <!-- probably an en-dash is the better option here -->
+                <xsl:text>/</xsl:text>
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@to"/>
+            </xsl:when>
+            <!-- fallback: erroneous encoding of issue information with @n -->
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@n">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit = 'issue']/@n"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:variable>
     <!-- first page of the issue -->
     <xsl:variable name="v_page-start" as="xs:integer">
         <xsl:choose>
-            <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from">
-                <xsl:value-of select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from"/>
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit='page']/@from">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit='page']/@from"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="7"/>
@@ -45,25 +93,14 @@
     <!-- total number of pages in this issue -->
     <xsl:variable name="v_pages" as="xs:integer">
         <xsl:choose>
-            <xsl:when test="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from and //tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@to">
-                <xsl:value-of select="//tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@to - //tei:sourceDesc/tei:biblStruct/tei:monogr/tei:biblScope[@unit='page']/@from + 1"/>
+            <xsl:when test="$v_biblStructSource//tei:biblScope[@unit='page']/@from and $v_biblStructSource//tei:biblScope[@unit='page']/@to">
+                <xsl:value-of select="$v_biblStructSource//tei:biblScope[@unit='page']/@to - $v_biblStructSource//tei:biblScope[@unit='page']/@from + 1"/>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="85"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
-    
-    <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
-    <xsl:param name="pEapIssueId" select="'191202'"/>
-    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't; default is 0 -->
-    <xsl:param name="pImgStartHathiDifference" select="0" as="xs:integer"/>
-    <!-- set-off between EAP image number and the printed edition; default is 0 -->
-    <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
-    <!-- volume in HathTrust collection: needs to be set -->
-    <xsl:variable name="vHathiTrustId" select="'umn.319510029968624'"/>
-    <!-- volume in EAP collection: needs to be set  -->
-    <xsl:variable name="vEapVolumeId" select="'6'"/>
     
     <!-- URL to Hathi, this is always the same -->
     <xsl:variable name="vFileUrlHathi" select="concat('https://babel.hathitrust.org/cgi/imgsrv/image?id=',$vHathiTrustId,';seq=')"/>
@@ -74,7 +111,7 @@
     <xsl:param name="p_year-sakhrit" select="'1906'"/>
     <xsl:variable name="v_url-sakhrit" select="concat($v_url-sakhrit-base,$v_journal-title-sakhrit,'/',$v_journal-title-sakhrit,'_',$p_year-sakhrit,'/Issue_',$v_issue,'/')"/>    
     
-    <!-- URL to EAP, always the same -->
+    <!-- URL to EAP, always the same for the same periodical. In this case al-Muqtabas -->
     <xsl:variable name="vFileUrlEap" select="concat('http://eap.bl.uk/EAPDigitalItems/EAP119/EAP119_1_4_',$vEapVolumeId,'-EAP119_muq',$pEapIssueId)"/>
     
     <!-- Path to local files -->
@@ -111,9 +148,14 @@
         </xsl:message>
     </xsl:template>
    
-   <!--<xsl:template match="tei:text">
+   <xsl:template match="tei:text">
        <xsl:copy>
            <xsl:apply-templates select="@*"/>
+           <!-- generate a pb linking to the first facsimile -->
+           <xsl:call-template name="t_generate-pb">
+               <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
+               <xsl:with-param name="p_page-stop" select="number($v_page-start)"/>
+           </xsl:call-template>
            <xsl:apply-templates select="tei:front"/>
            <xsl:apply-templates select="tei:body"/>
            <xsl:choose>
@@ -128,29 +170,29 @@
                </xsl:otherwise>
            </xsl:choose>
        </xsl:copy>
-   </xsl:template>-->
+   </xsl:template>
     
-    <!-- add an approximate number of <pb>s after each <div> to ease the job for potential editors  -->
-    <xsl:template match="tei:body/tei:div">
-        <xsl:copy>
-            <xsl:apply-templates select="@*|node()"/>
-        </xsl:copy>
-        <xsl:call-template name="t_generate-pb">
-            <xsl:with-param name="p_page-start" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + 1"/>
-            <xsl:with-param name="p_page-stop" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + $v_count-pb-per-div"/>
-        </xsl:call-template>
-    </xsl:template>
-    
-   <!-- <xsl:template match="tei:back">
+    <xsl:template match="tei:back">
         <xsl:copy>
             <xsl:apply-templates select="@*|node()"/>
             <xsl:element name="div">
                 <xsl:call-template name="t_generate-pb">
-                    <xsl:with-param name="p_page-start" select="number($v_page-start)"/>
+                    <xsl:with-param name="p_page-start" select="number($v_page-start +1)"/>
                     <xsl:with-param name="p_page-stop" select="number($v_page-start + $v_pages -1)"/>
                 </xsl:call-template>
             </xsl:element>
         </xsl:copy>
+    </xsl:template>
+    
+    <!-- add an approximate number of <pb>s after each <div> to ease the job for potential editors  -->
+    <!--<xsl:template match="tei:body/tei:div">
+        <xsl:copy>
+            <xsl:apply-templates select="@*|node()"/>
+        </xsl:copy>
+        <xsl:call-template name="t_generate-pb">
+            <xsl:with-param name="p_page-start" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + $v_page-start"/>
+            <xsl:with-param name="p_page-stop" select="count(preceding-sibling::tei:div) * $v_count-pb-per-div + $v_count-pb-per-div + $v_page-start"/>
+        </xsl:call-template>
     </xsl:template>-->
     
     <!-- copy everything -->
