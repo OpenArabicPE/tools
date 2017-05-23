@@ -18,8 +18,8 @@
     <!-- include translator for JSON -->
     <xsl:include href="oap-xml-to-json.xsl"/>
     
-    <!-- this defines the master files for entities; default is '../../authority-files/tei/entities_master.TEIP5.xml' -->
-    <xsl:param name="p_file-entities-master" select="doc('../../digital-mawaqif/tei/entities_master.TEIP5.xml')"/>
+    <!-- this defines the master files for entities; default is '../../authority-files/tei/entities_master.TEIP5.xml'; other options include ../../digital-mawaqif/tei/entities_master.TEIP5.xml -->
+    <xsl:param name="p_file-entities-master" select="doc('../../authority-files/tei/entities_master.TEIP5.xml')"/>
 
     <xsl:template match="/">
         <xsl:apply-templates/>
