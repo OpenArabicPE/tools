@@ -5,7 +5,7 @@
     exclude-result-prefixes="xs"
     version="3.0">
     
-    <xsl:output method="text" encoding="UTF-8" indent="no"/>
+    <xsl:output method="text" indent="no" encoding="UTF-8" name="text"/>
     
     <xsl:param name="p_lang" select="'ar'"/>
     <xsl:variable name="v_geojson-opener">
@@ -16,7 +16,7 @@
     </xsl:variable>
     
     <xsl:template match="/">
-        <xsl:result-document href="test_geojson-{ format-date(current-date(),'[Y0001]-[M01]-[D01]')}.geojson">
+        <xsl:result-document href="test_geojson-{ format-date(current-date(),'[Y0001]-[M01]-[D01]')}.geojson" format="text">
             <xsl:value-of select="$v_geojson-opener"/>
             <xsl:apply-templates select="descendant::tei:place"/>
             <xsl:value-of select="$v_geojson-closer"/>
@@ -27,19 +27,19 @@
         <xsl:param name="p_input" select="."/>
         <xsl:param name="p_lang" select="$p_lang"/>
         <!-- the following can be derived from the input parameter -->
-        <xsl:param name="p_lat" select="tokenize(tei:location/tei:geo,',')[1]"/>
-        <xsl:param name="p_lng" select="tokenize(tei:location/tei:geo,',')[2]"/>
+        <xsl:param name="p_lat" select="tokenize($p_input/tei:location/tei:geo,',')[1]"/>
+        <xsl:param name="p_lng" select="tokenize($p_input/tei:location/tei:geo,',')[2]"/>
         <xsl:param name="p_toponym">
             <xsl:choose>
-                <xsl:when test="tei:placeName[@xml:lang=$p_lang]">
-                    <xsl:copy-of select="tei:placeName[@xml:lang=$p_lang][1]"/>
+                <xsl:when test="$p_input/tei:placeName[@xml:lang=$p_lang]">
+                    <xsl:copy-of select="$p_input/tei:placeName[@xml:lang=$p_lang][1]"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:copy-of select="tei:placeName[1]"/>
+                    <xsl:copy-of select="$p_input/tei:placeName[1]"/>
                 </xsl:otherwise>
             </xsl:choose>
         </xsl:param>
-        <xsl:param name="p_id-geonames" select="tei:idno[@type='geon'][1]"/>
+        <xsl:param name="p_id-geonames" select="$p_input/tei:idno[@type='geon'][1]"/>
         <!-- $p_properties takes correctly formatted JSON as input -->
         <xsl:param name="p_properties">
             <xsl:text>"publications": 47</xsl:text>
