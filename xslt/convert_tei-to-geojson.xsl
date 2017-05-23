@@ -5,7 +5,7 @@
     exclude-result-prefixes="xs"
     version="3.0">
     
-    <xsl:output method="text"/>
+    <xsl:output method="text" encoding="UTF-8" indent="no"/>
     
     <xsl:param name="p_lang" select="'ar'"/>
     <xsl:variable name="v_geojson-opener">
