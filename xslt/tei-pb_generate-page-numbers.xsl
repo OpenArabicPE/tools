@@ -17,8 +17,14 @@
 
     <xsl:param name="p_id-editor" select="'pers_TG'"/>
     <!--<xsl:variable name="vFirstPage" select="if(//tei:pb[not(@ed='shamela')][1]/@n) then(//tei:pb[not(@ed='shamela')][1]/@n) else(tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
+    
+    <!-- toggle debugging messages -->
+    <xsl:param name="p_verbose" select="false()"/>
 
-    <xsl:template match="tei:pb[not(@ed = 'shamela')]">
+    <xsl:template match="tei:pb[not(@ed = 'shamela')]" name="t_1">
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message><xsl:text>t_1: Found page break other than shamela</xsl:text></xsl:message>
+        </xsl:if>
         <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
@@ -51,20 +57,13 @@
     <!-- generate documentation of change -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:text>Added automated page numbers as </xsl:text>
-                <xsl:element name="att">n</xsl:element>
-                <xsl:text>s and </xsl:text>
-                <xsl:element name="att">ed</xsl:element>
-                <xsl:text>="print" for every</xsl:text>
-                <xsl:element name="gi">pb</xsl:element>
-                <xsl:text> that was not of </xsl:text>
-                <xsl:element name="att">ed</xsl:element>
-                <xsl:text>="shamela".</xsl:text>
+                <xsl:text>Added automated page numbers as </xsl:text><xsl:element name="att">n</xsl:element><xsl:text>s and </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="print" for every</xsl:text><xsl:element name="gi">pb</xsl:element><xsl:text> that was not of </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="shamela".</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
 
