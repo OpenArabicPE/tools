@@ -136,12 +136,13 @@
     <!-- generate documentation of change -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:text>Generated a new </xsl:text><tei:gi>front</tei:gi><xsl:text> based on the </xsl:text><tei:gi>sourceDesc</tei:gi><xsl:text> that matches the information found in the masthead of the actual issues.</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     

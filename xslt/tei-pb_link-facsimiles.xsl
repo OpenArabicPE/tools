@@ -34,12 +34,13 @@
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:text>Linked all </xsl:text><tei:tag>pb ed="print"</tei:tag><xsl:text> to the corresponding facsimile</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     

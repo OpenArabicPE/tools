@@ -39,12 +39,13 @@
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc" priority="100">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:text>Added the </xsl:text><tei:att>xml:lang</tei:att><xsl:text> attribute to all nodes that lacked this attribute. The value is based on the closest ancestor.</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     
