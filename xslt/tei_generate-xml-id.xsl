@@ -17,7 +17,8 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+<!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
    
     
     <!-- reproduce everything as is -->
