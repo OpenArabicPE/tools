@@ -22,8 +22,8 @@
     -->
     <xsl:param name="p_master-entities" select="doc('../../authority-files/tei/entities_master.TEIP5.xml')"/>
     
-    <xsl:param name="p_year-start" select="1906"/>
-    <xsl:param name="p_year-stop" select="1920"/>
+    <xsl:param name="p_year-start" select="1875"/>
+    <xsl:param name="p_year-stop" select="1908"/>
        
     <!-- run stylesheet on root  -->
     <xsl:template match="/">
