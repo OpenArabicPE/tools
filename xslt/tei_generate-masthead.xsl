@@ -19,17 +19,39 @@
     
     <xsl:output method="xml" omit-xml-declaration="no" indent="no" encoding="UTF-8"/>
 
-    <xsl:include href="https://rawgit.com/tillgrallert/xslt-calendar-conversion/master/date-function.xsl"/>
-<!--    <xsl:include href="../../xslt-calendar-conversion/date-function.xsl"/>-->
+<!--    <xsl:include href="https://rawgit.com/tillgrallert/xslt-calendar-conversion/master/date-function.xsl"/>-->
+    <xsl:include href="../../../xslt-functions/functions_core.xsl"/>
     
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+<!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
+    <!-- identity transform -->
     <xsl:template match="@* | node()">
         <xsl:copy>
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
+    <!-- generate documentation of change -->
+    <xsl:template match="tei:revisionDesc" priority="100">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:element name="change">
+                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
+                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
+                <xsl:attribute name="change" select="$p_id-change"/>
+                <xsl:text>Generated a new </xsl:text><tei:gi>front</tei:gi><xsl:text> based on the </xsl:text><tei:gi>sourceDesc</tei:gi><xsl:text> that matches the information found in the masthead of the actual issues.</xsl:text>
+            </xsl:element>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
+    </xsl:template>
+    <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
+    <xsl:template match="@change">
+        <xsl:attribute name="change">
+                    <xsl:value-of select="concat(.,' #',$p_id-change)"/>
+        </xsl:attribute>
+    </xsl:template>
+    
     <!-- set language -->
     <xsl:variable name="vLang" select="'ar'"/>
     <!-- retrieve bibliographic information from the teiHeader -->
@@ -54,8 +76,12 @@
     <!-- generate a new <front> -->
     <xsl:template match="tei:front">
         <xsl:copy>
+            <!-- add documentation of change -->
+                    <xsl:if test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    </xsl:if>
             <xsl:apply-templates select="@*"/>
-            <div type="masthead">
+            <div type="masthead" chage="{concat('#',$p_id-change)}">
                 <bibl>
                     <xsl:element name="tei:biblScope">
                         <xsl:attribute name="unit" select="'issue'"/>
@@ -133,18 +159,7 @@
             </div>
         </xsl:copy>
     </xsl:template>
-    <!-- generate documentation of change -->
-    <xsl:template match="tei:revisionDesc">
-        <xsl:copy>
-            <xsl:apply-templates select="@*"/>
-            <xsl:element name="change">
-                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
-                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:text>Generated a new </xsl:text><tei:gi>front</tei:gi><xsl:text> based on the </xsl:text><tei:gi>sourceDesc</tei:gi><xsl:text> that matches the information found in the masthead of the actual issues.</xsl:text>
-            </xsl:element>
-            <xsl:apply-templates select="node()"/>
-        </xsl:copy>
-    </xsl:template>
+    
     
     <xsl:template match="tei:imprint/tei:date" mode="mBibl">
         <xsl:variable name="vYear" select="substring(@when-custom, 1, 4)"/>
