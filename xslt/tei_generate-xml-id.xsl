@@ -30,6 +30,10 @@
     
     <!-- generate documentation of change -->
     <xsl:template match="tei:revisionDesc" priority="100">
+        <!-- basic debugging -->
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message><xsl:text>change-id: </xsl:text><xsl:value-of select="$p_id-change"/></xsl:message>
+        </xsl:if>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:element name="change">

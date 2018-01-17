@@ -34,7 +34,7 @@
             <xsl:element name="change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:attribute name="change" select="$p_id-change"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:text>Added automated page numbers as </xsl:text><xsl:element name="att">n</xsl:element><xsl:text>s and </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="print" for every</xsl:text><xsl:element name="gi">pb</xsl:element><xsl:text> that was not of </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="shamela".</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>

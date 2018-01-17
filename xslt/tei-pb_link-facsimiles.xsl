@@ -34,12 +34,16 @@
     </xsl:template>
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc" priority="100">
+        <!-- basic debugging -->
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message><xsl:text>change-id: </xsl:text><xsl:value-of select="$p_id-change"/></xsl:message>
+        </xsl:if>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:attribute name="change" select="$p_id-change"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:text>Linked all </xsl:text><tei:tag>pb ed="print"</tei:tag><xsl:text> to the corresponding facsimile</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>

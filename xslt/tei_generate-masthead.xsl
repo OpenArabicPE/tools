@@ -3,12 +3,9 @@
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:html="http://www.w3.org/1999/xhtml"
-    xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-    xmlns:opf="http://www.idpf.org/2007/opf"
-    xmlns:dc="http://purl.org/dc/elements/1.1/"
     xmlns="http://www.tei-c.org/ns/1.0"
-    exclude-result-prefixes="xs"
+    xmlns:xd="http://www.pnp-software.com/XSLTdoc"
+    exclude-result-prefixes="xs xd"
     version="2.0">
     
     <xd:doc scope="stylesheet">
@@ -17,7 +14,7 @@
         </xd:desc>
     </xd:doc>
     
-    <xsl:output method="xml" omit-xml-declaration="no" indent="no" encoding="UTF-8"/>
+    <xsl:output method="xml" omit-xml-declaration="no" indent="yes" encoding="UTF-8"/>
 
 <!--    <xsl:include href="https://rawgit.com/tillgrallert/xslt-calendar-conversion/master/date-function.xsl"/>-->
     <xsl:include href="../../../xslt-functions/functions_core.xsl"/>
@@ -39,7 +36,7 @@
             <xsl:element name="change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:attribute name="change" select="$p_id-change"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:text>Generated a new </xsl:text><tei:gi>front</tei:gi><xsl:text> based on the </xsl:text><tei:gi>sourceDesc</tei:gi><xsl:text> that matches the information found in the masthead of the actual issues.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
@@ -81,7 +78,7 @@
                         <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
                     </xsl:if>
             <xsl:apply-templates select="@*"/>
-            <div type="masthead" chage="{concat('#',$p_id-change)}">
+            <div type="masthead" change="{concat('#',$p_id-change)}">
                 <bibl>
                     <xsl:element name="tei:biblScope">
                         <xsl:attribute name="unit" select="'issue'"/>
