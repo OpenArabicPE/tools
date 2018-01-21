@@ -43,7 +43,7 @@
         </xsl:copy>
     </xsl:template>
     <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
-    <xsl:template match="@change">
+    <xsl:template match="@change" mode="m_documentation">
         <xsl:attribute name="change">
                     <xsl:value-of select="concat(.,' #',$p_id-change)"/>
         </xsl:attribute>
@@ -66,6 +66,7 @@
             <xsl:if test="preceding::tei:pb[@ed='print']">
                 <xsl:copy>
                     <xsl:apply-templates select="@*"/>
+                    <xsl:apply-templates select="@change" mode="m_documentation"/>
                 </xsl:copy>
             </xsl:if> 
     </xsl:template>
@@ -73,11 +74,16 @@
     <!-- generate a new <front> -->
     <xsl:template match="tei:front">
         <xsl:copy>
-            <!-- add documentation of change -->
-                    <xsl:if test="not(@change)">
-                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
-                    </xsl:if>
             <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
+            <xsl:choose>
+                <xsl:when test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    </xsl:when>
+                <xsl:otherwise>
+                    <xsl:apply-templates select="@change" mode="m_documentation"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <div type="masthead" change="{concat('#',$p_id-change)}">
                 <bibl>
                     <xsl:element name="tei:biblScope">
