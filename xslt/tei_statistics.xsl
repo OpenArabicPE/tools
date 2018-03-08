@@ -27,6 +27,10 @@
 
     <xsl:template match="tei:text">
         <!-- variables -->
+        <xsl:variable name="v_bibl-source" select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct"/>
+        <xsl:variable name="v_date" select="$v_bibl-source/tei:monogr/tei:imprint/tei:date[1]/@when"/>
+        <xsl:variable name="v_volume" select="$v_bibl-source/tei:monogr/tei:biblScope[@unit='volume']/@from"/>
+        <xsl:variable name="v_issue" select="$v_bibl-source/tei:monogr/tei:biblScope[@unit='issue']/@from"/>
         <xsl:variable name="v_articles-independent"
             select="descendant::tei:div[@type = 'article'][not(ancestor::tei:div[@type = 'section'])]"/>
         <xsl:variable name="v_articles-independent-authors"
@@ -119,6 +123,18 @@
         <xsl:variable name="v_array-result">
             <oap:array xml:id="{@xml:id}-stats">
                 <oap:object>
+                    <oap:item>
+                        <oap:key>date</oap:key>
+                        <oap:value><xsl:value-of select="$v_date"/></oap:value>
+                    </oap:item>
+                    <oap:item>
+                        <oap:key>volume</oap:key>
+                        <oap:value><xsl:value-of select="$v_volume"/></oap:value>
+                    </oap:item>
+                    <oap:item>
+                        <oap:key>issue</oap:key>
+                        <oap:value><xsl:value-of select="$v_issue"/></oap:value>
+                    </oap:item>
                     <oap:item>
                         <oap:key>MODS</oap:key>
                         <oap:value>
