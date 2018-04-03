@@ -49,7 +49,8 @@
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:attribute name="change" select="$p_id-change"/>
-                <xsl:text>Added the </xsl:text><tei:att>xml:lang</tei:att><xsl:text> attribute to all nodes that lacked this attribute. The value is based on the closest ancestor.</xsl:text>
+                <xsl:attribute name="xml:lang" select="'en'"/>
+                <xsl:text>Added the </xsl:text><tei:att xml:lang="en">xml:lang</tei:att><xsl:text> attribute to all nodes that lacked this attribute. The value is based on the closest ancestor.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
