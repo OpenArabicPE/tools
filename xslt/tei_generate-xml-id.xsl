@@ -37,13 +37,9 @@
                     select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#', $p_id-editor)"/>
                 <xsl:attribute name="xml:id" select="$p_id-change"/>
-                <xsl:text>Added automated </xsl:text>
-                <xsl:element name="att">xml:id</xsl:element>
-                <xsl:text>s for every element that is a descendant of </xsl:text>
-                <xsl:element name="gi">tei:text</xsl:element>
-                <xsl:text>and had no existing </xsl:text>
-                <xsl:element name="att">xml:id</xsl:element>
-                <xsl:text>following the pattern "name()_generate-id()"</xsl:text>
+                <xsl:attribute name="xml:lang" select="'en'"/>
+                <xsl:text>Added automated </xsl:text><tei:att xml:lang="en">xml:id</tei:att><xsl:text>s for every element that is a descendant of </xsl:text><tei:gi xml:lang="en">tei:text</tei:gi><xsl:text> and had no existing </xsl:text>
+                <tei:att xml:lang="en">xml:id</tei:att><xsl:text> following the pattern "name()_generate-id()".</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
