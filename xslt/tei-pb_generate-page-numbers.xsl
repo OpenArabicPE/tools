@@ -19,6 +19,8 @@
 <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!--<xsl:variable name="vFirstPage" select="if(//tei:pb[not(@ed='shamela')][1]/@n) then(//tei:pb[not(@ed='shamela')][1]/@n) else(tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
+    
+    <xsl:variable name="v_sourceDesc" select="tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc"/>
 
 <!-- reproduce everything as is -->
     <xsl:template match="@* |node()">
@@ -51,7 +53,8 @@
         <xsl:if test="$p_verbose = true()">
             <xsl:message><xsl:text>t_1: Found page break other than shamela</xsl:text></xsl:message>
         </xsl:if>
-        <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>
+<!--        <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
+        <xsl:variable name="v_page-first" select="$v_sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from"/>
         <xsl:copy>
             <!-- add documentation of change -->
                     <xsl:if test="not(@change)">
