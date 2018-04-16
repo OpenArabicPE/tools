@@ -17,6 +17,10 @@
         </xd:desc>
     </xd:doc>
     
+    <!-- TO DO: 
+        1. the OCLC number must be retrieved from the input file
+        2. EAP has switched to IIIF and therefore new URLs-->
+    
     <xsl:output encoding="UTF-8" indent="yes" method="xml" omit-xml-declaration="no" version="1.0"/>
 
     <!-- identify the author of the change by means of a @xml:id -->
@@ -35,7 +39,7 @@
     <!-- set-off between EAP image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
     <!-- volume in HathTrust collection: needs to be set -->
-    <xsl:variable name="vHathiTrustId" select="'njp.32101007615691'"/>
+    <xsl:variable name="vHathiTrustId" select="'njp.32101036074001'"/>
     <!-- volume in EAP collection: needs to be set  -->
     <xsl:variable name="vEapVolumeId" select="'6'"/>
     
@@ -234,9 +238,10 @@
                     <xsl:attribute name="url" select="concat($v_path-file,format-number($vStartHathi,'000'),'.tif')"/>
                     <xsl:attribute name="mimeType" select="'image/tiff'"/>
                 </xsl:element>-->
+                <!-- local JPEG copy -->
                 <xsl:element name="tei:graphic">
                     <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_2')"/>
-                    <xsl:attribute name="url" select="concat($v_path-file,format-number($vStartHathi,'000'),'.jpg')"/>
+                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start,'000'),'.jpg')"/>
                     <xsl:attribute name="mimeType" select="'image/jpeg'"/>
                 </xsl:element>
             </xsl:if>
