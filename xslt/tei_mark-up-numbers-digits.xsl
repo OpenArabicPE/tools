@@ -20,7 +20,7 @@
     <!-- identify the author of the change by means of a @xml:id -->
     <xsl:param name="p_id-editor" select="'pers_TG'"/>
     <!-- parameter to select whether output of numerals should be converted into Arabic script or not -->
-    <xsl:param name="p_convert-to-arabic" select="false()"/>
+    <xsl:param name="p_convert-to-arabic" select="true()"/>
     
     
     <xsl:variable name="v_string-transcribe-ijmes" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāūīwy0123456789'"/>
@@ -36,12 +36,13 @@
     <!-- document the changes -->
     <xsl:template match="tei:revisionDesc" priority="100">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:text>Wrapped all numerals in </xsl:text><tei:gi>num</tei:gi><xsl:text> with </xsl:text><tei:att>value</tei:att><xsl:text> recording their value in standardised form and converted them into Arabic numerals to reflect the original text.</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     
