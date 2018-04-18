@@ -49,14 +49,12 @@
             <oap:array>
                 <xsl:for-each
                     select="$v_articles-independent/descendant-or-self::tei:div[@type = 'article']">
-                    <xsl:variable name="v_plain-text">
-                        <xsl:apply-templates select="." mode="mPlainText"/>
-                    </xsl:variable>
                     <oap:item>
                         <oap:key>number of characters</oap:key>
                         <oap:value>
-                            <xsl:value-of
-                                select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+                            <xsl:call-template name="t_count-characters">
+                                <xsl:with-param name="p_input" select="."/>
+                            </xsl:call-template>
                         </oap:value>
                     </oap:item>
                 </xsl:for-each>
@@ -66,14 +64,12 @@
             <oap:array>
                 <xsl:for-each
                     select="$v_articles-in-sections/descendant-or-self::tei:div[@type = 'article']">
-                    <xsl:variable name="v_plain-text">
-                        <xsl:apply-templates select="." mode="mPlainText"/>
-                    </xsl:variable>
                     <oap:item>
                         <oap:key>number of characters</oap:key>
                         <oap:value>
-                            <xsl:value-of
-                                select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+                            <xsl:call-template name="t_count-characters">
+                                <xsl:with-param name="p_input" select="."/>
+                            </xsl:call-template>
                         </oap:value>
                     </oap:item>
                 </xsl:for-each>
