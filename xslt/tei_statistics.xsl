@@ -244,6 +244,14 @@
         <xsl:value-of select="number(count(tokenize(string($p_input), '\W+')))"/>
     </xsl:template>
 
-    <!-- count characters -->
+    <!-- count characters: output is a number -->
+    <xsl:template name="t_count-characters">
+        <!-- $p_input accepts xml nodes as input -->
+        <xsl:param name="p_input"/>
+        <xsl:variable name="v_plain-text">
+            <xsl:apply-templates select="$p_input" mode="mPlainText"/>
+        </xsl:variable>
+        <xsl:value-of select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+    </xsl:template>
 
 </xsl:stylesheet>
