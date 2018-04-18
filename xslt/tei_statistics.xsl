@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:oap="https://openarape.github.io/ns" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
+    xmlns:oap="https://openarabicpe.github.io/ns" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="xs" version="2.0">
 
     <xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="no" name="xml"/>
@@ -18,6 +18,8 @@
 
     <!-- include translator for JSON -->
     <xsl:include href="oap-xml-to-json.xsl"/>
+    <!-- include translator for CSV -->
+    <xsl:include href="oap-xml-to-csv.xsl"/>
 
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
@@ -25,6 +27,10 @@
 
     <xsl:template match="tei:text">
         <!-- variables -->
+        <xsl:variable name="v_bibl-source" select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct"/>
+        <xsl:variable name="v_date" select="$v_bibl-source/tei:monogr/tei:imprint/tei:date[1]/@when"/>
+        <xsl:variable name="v_volume" select="$v_bibl-source/tei:monogr/tei:biblScope[@unit='volume']/@from"/>
+        <xsl:variable name="v_issue" select="$v_bibl-source/tei:monogr/tei:biblScope[@unit='issue']/@from"/>
         <xsl:variable name="v_articles-independent"
             select="descendant::tei:div[@type = 'article'][not(ancestor::tei:div[@type = 'section'])]"/>
         <xsl:variable name="v_articles-independent-authors"
@@ -43,14 +49,12 @@
             <oap:array>
                 <xsl:for-each
                     select="$v_articles-independent/descendant-or-self::tei:div[@type = 'article']">
-                    <xsl:variable name="v_plain-text">
-                        <xsl:apply-templates select="." mode="mPlainText"/>
-                    </xsl:variable>
                     <oap:item>
                         <oap:key>number of characters</oap:key>
                         <oap:value>
-                            <xsl:value-of
-                                select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+                            <xsl:call-template name="t_count-characters">
+                                <xsl:with-param name="p_input" select="."/>
+                            </xsl:call-template>
                         </oap:value>
                     </oap:item>
                 </xsl:for-each>
@@ -60,14 +64,12 @@
             <oap:array>
                 <xsl:for-each
                     select="$v_articles-in-sections/descendant-or-self::tei:div[@type = 'article']">
-                    <xsl:variable name="v_plain-text">
-                        <xsl:apply-templates select="." mode="mPlainText"/>
-                    </xsl:variable>
                     <oap:item>
                         <oap:key>number of characters</oap:key>
                         <oap:value>
-                            <xsl:value-of
-                                select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+                            <xsl:call-template name="t_count-characters">
+                                <xsl:with-param name="p_input" select="."/>
+                            </xsl:call-template>
                         </oap:value>
                     </oap:item>
                 </xsl:for-each>
@@ -117,6 +119,18 @@
         <xsl:variable name="v_array-result">
             <oap:array xml:id="{@xml:id}-stats">
                 <oap:object>
+                    <oap:item>
+                        <oap:key>date</oap:key>
+                        <oap:value><xsl:value-of select="$v_date"/></oap:value>
+                    </oap:item>
+                    <oap:item>
+                        <oap:key>volume</oap:key>
+                        <oap:value><xsl:value-of select="$v_volume"/></oap:value>
+                    </oap:item>
+                    <oap:item>
+                        <oap:key>issue</oap:key>
+                        <oap:value><xsl:value-of select="$v_issue"/></oap:value>
+                    </oap:item>
                     <oap:item>
                         <oap:key>MODS</oap:key>
                         <oap:value>
@@ -203,8 +217,7 @@
         <!-- JSON -->
         <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.json"
             format="text">
-            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json">
-            </xsl:apply-templates>
+            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-json"/>
         </xsl:result-document>
         <!-- custom XML -->
         <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.xml"
@@ -215,6 +228,10 @@
                 disable-output-escaping="yes"/>
             <xsl:copy-of select="$v_array-result"/>
         </xsl:result-document>
+        <!-- CSV -->
+        <xsl:result-document href="../statistics/{ancestor::tei:TEI/@xml:id}-stats_tei.csv" format="text">
+            <xsl:apply-templates select="$v_array-result" mode="m_oap-to-csv"/>
+        </xsl:result-document>
     </xsl:template>
 
     <!-- count words -->
@@ -223,6 +240,14 @@
         <xsl:value-of select="number(count(tokenize(string($p_input), '\W+')))"/>
     </xsl:template>
 
-    <!-- count characters -->
+    <!-- count characters: output is a number -->
+    <xsl:template name="t_count-characters">
+        <!-- $p_input accepts xml nodes as input -->
+        <xsl:param name="p_input"/>
+        <xsl:variable name="v_plain-text">
+            <xsl:apply-templates select="$p_input" mode="mPlainText"/>
+        </xsl:variable>
+        <xsl:value-of select="number(string-length(replace($v_plain-text, '\W', '')))"/>
+    </xsl:template>
 
 </xsl:stylesheet>

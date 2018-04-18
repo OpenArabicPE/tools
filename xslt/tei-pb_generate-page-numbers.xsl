@@ -15,12 +15,51 @@
     </xd:doc>
     <xsl:output encoding="UTF-8" indent="yes" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
 
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    <!-- identify the author of the change by means of a @xml:id -->
+<!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!--<xsl:variable name="vFirstPage" select="if(//tei:pb[not(@ed='shamela')][1]/@n) then(//tei:pb[not(@ed='shamela')][1]/@n) else(tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
+    
+    <xsl:variable name="v_sourceDesc" select="tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc"/>
 
-    <xsl:template match="tei:pb[not(@ed = 'shamela')]">
-        <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>
+<!-- reproduce everything as is -->
+    <xsl:template match="@* |node()">
         <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!-- generate documentation of change -->
+    <xsl:template match="tei:revisionDesc" priority="100">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:element name="change">
+                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
+                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
+                <xsl:text>Added automated page numbers as </xsl:text><xsl:element name="att">n</xsl:element><xsl:text>s and </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="print" for every</xsl:text><xsl:element name="gi">pb</xsl:element><xsl:text> that was not of </xsl:text><xsl:element name="att">ed</xsl:element><xsl:text>="shamela".</xsl:text>
+            </xsl:element>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
+    </xsl:template>
+    <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
+    <xsl:template match="@change">
+        <xsl:attribute name="change">
+                    <xsl:value-of select="concat(.,' #',$p_id-change)"/>
+        </xsl:attribute>
+    </xsl:template>
+
+    <xsl:template match="tei:pb[not(@ed = 'shamela')]" name="t_1">
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message><xsl:text>t_1: Found page break other than shamela</xsl:text></xsl:message>
+        </xsl:if>
+<!--        <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
+        <xsl:variable name="v_page-first" select="$v_sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from"/>
+        <xsl:copy>
+            <!-- add documentation of change -->
+                    <xsl:if test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    </xsl:if>
             <xsl:apply-templates select="@*"/>
             <xsl:attribute name="ed">
                 <xsl:text>print</xsl:text>
@@ -40,33 +79,4 @@
             </xsl:choose>-->
         </xsl:copy>
     </xsl:template>
-
-    <!-- reproduce everything as is -->
-    <xsl:template match="@* |node()">
-        <xsl:copy>
-            <xsl:apply-templates select="@* | node()"/>
-        </xsl:copy>
-    </xsl:template>
-    
-    <!-- generate documentation of change -->
-    <xsl:template match="tei:revisionDesc">
-        <xsl:copy>
-            <xsl:element name="change">
-                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
-                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:text>Added automated page numbers as </xsl:text>
-                <xsl:element name="att">n</xsl:element>
-                <xsl:text>s and </xsl:text>
-                <xsl:element name="att">ed</xsl:element>
-                <xsl:text>="print" for every</xsl:text>
-                <xsl:element name="gi">pb</xsl:element>
-                <xsl:text> that was not of </xsl:text>
-                <xsl:element name="att">ed</xsl:element>
-                <xsl:text>="shamela".</xsl:text>
-            </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
-        </xsl:copy>
-    </xsl:template>
-
-
 </xsl:stylesheet>

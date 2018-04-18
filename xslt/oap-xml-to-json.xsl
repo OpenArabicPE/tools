@@ -3,12 +3,13 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:mods="http://www.loc.gov/mods/v3"
-    xmlns:oap="https://openarape.github.io/ns"
+    xmlns:oap="https://openarabicpe.github.io/ns"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xpath-default-namespace="http://www.loc.gov/mods/v3"
     exclude-result-prefixes="xs xd"
     version="2.0">
-   
+    
+    <!-- this stylesheet converts the custom XML used for statistical output of OpenArabicPE to JSON -->
     
     <xsl:template match="oap:array" mode="m_oap-to-json">
         <xsl:apply-templates select="oap:key" mode="m_oap-to-json"/>

@@ -22,8 +22,9 @@
         - vol. 4: 12
         - vol. 6: 4 -\->
     <xsl:param name="pPageSetOff" select="12"/>-->
-    <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+ <!-- identify the author of the change by means of a @xml:id -->
+<!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <!-- copy everything -->
     <xsl:template match="@* | node()">
@@ -32,20 +33,36 @@
         </xsl:copy>
     </xsl:template>
     <!-- document the changes -->
-    <xsl:template match="tei:revisionDesc">
+    <xsl:template match="tei:revisionDesc" priority="100">
+        <!-- basic debugging -->
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message><xsl:text>change-id: </xsl:text><xsl:value-of select="$p_id-change"/></xsl:message>
+        </xsl:if>
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:text>Linked all </xsl:text><tei:tag>pb ed="print"</tei:tag><xsl:text> to the corresponding facsimile</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
+    </xsl:template>
+        <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
+    <xsl:template match="@change">
+        <xsl:attribute name="change">
+                    <xsl:value-of select="concat(.,' #',$p_id-change)"/>
+        </xsl:attribute>
     </xsl:template>
     
     <xsl:template match="tei:pb[@ed='print']">
         <xsl:variable name="vPosPb" select="count(preceding::tei:pb[@ed = 'print']) +1"/>
         <xsl:copy>
+            <!-- add documentation of change -->
+                    <xsl:if test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    </xsl:if>
             <xsl:apply-templates select="@*"/>
             <xsl:attribute name="facs">
                 <xsl:value-of select="concat('#',$vFacs/descendant::tei:surface[$vPosPb]/@xml:id)"/>
