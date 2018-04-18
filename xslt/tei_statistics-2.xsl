@@ -68,11 +68,11 @@
             </xsl:choose>
         </xsl:variable>
         <!-- stats per page -->
-        <!-- requires preprocessing -->
-        <xsl:variable name="v_plain-text">
-            <xsl:apply-templates mode="m_plain-text"/>
-        </xsl:variable>
         <xsl:result-document href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-pages.csv" format="text">
+            <!-- requires preprocessing -->
+            <xsl:variable name="v_plain-text">
+                <xsl:apply-templates mode="m_plain-text"/>
+            </xsl:variable>
             <!-- csv head -->
             <xsl:text>title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -127,6 +127,10 @@
             <xsl:value-of select="$v_new-line"/>
            <!-- one line for each article -->
             <xsl:for-each select="descendant::tei:div[@type = 'article'][not(ancestor::tei:div[@type = 'bill'])]">
+                <!-- preprocess -->
+                <xsl:variable name="v_plain-text">
+                    <xsl:apply-templates mode="m_plain-text"/>
+                </xsl:variable>
                 <!-- title -->
                 <xsl:value-of select="$v_title"/><xsl:value-of select="$v_seperator"/>
                 <!-- date -->
@@ -159,12 +163,12 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- number of words -->
                 <xsl:call-template name="t_count-words">
-                    <xsl:with-param name="p_input" select="."/>
+                    <xsl:with-param name="p_input" select="$v_plain-text"/>
                 </xsl:call-template>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- number of characters -->
                 <xsl:call-template name="t_count-characters">
-                    <xsl:with-param name="p_input" select="."/>
+                    <xsl:with-param name="p_input" select="$v_plain-text"/>
                 </xsl:call-template>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- end of line -->
@@ -200,4 +204,12 @@
     <xsl:template match="tei:pb[@ed='print']" mode="m_plain-text">
         <xsl:text>$pb</xsl:text><xsl:value-of select="@n"/><xsl:text>$</xsl:text>
     </xsl:template>
+    <!-- editorial interventions -->
+    <!-- remove all interventions from shamela.ws -->
+    <xsl:template match="node()[@resp='#org_MS']" mode="m_plain-text"/>
+    <!-- editorial corrections with choice: original mistakes are encoded as <sic> or <orig>, corrections as <corr> -->
+    <xsl:template match="tei:choice" mode="m_plain-text">
+        <xsl:apply-templates select="node()[not(self::tei:corr)]" mode="m_plain-text"/>
+    </xsl:template>
+    
 </xsl:stylesheet>
