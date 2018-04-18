@@ -9,15 +9,11 @@
 
     <xd:doc scope="stylesheet">
         <xd:desc>
-            <xd:p>This stylesheet produces a number of statistics such as word counts, character counts etc. Input are TEI XML files.</xd:p>
+            <xd:p>This stylesheet produces a number of statistics such as word counts, character counts etc. Input are TEI XML files. Output are CSV files.</xd:p>
         </xd:desc>
     </xd:doc>
-
-    <!-- include plain text functions -->
-    <xsl:include href="https://rawgit.com/OpenArabicPE/convert_tei-to-markdown/master/xslt/Tei2Md-functions.xsl"/>
     
-    <!-- the new line variable is provided by Tei2Md-parameters -->
-    <!--    <xsl:variable name="v_new-line" select="'&#x0A;'"/>-->
+    <xsl:variable name="v_new-line" select="'&#x0A;'"/>
     <xsl:variable name="v_seperator" select="';'"/>
 
     <xsl:template match="tei:TEI">
@@ -80,7 +76,7 @@
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>page</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>character.count</xsl:text>
             <xsl:value-of select="$v_new-line"/>
             <!-- one line for each page -->
             <xsl:for-each select="tokenize(normalize-space($v_plain-text),'\$pb')">
@@ -106,7 +102,6 @@
                     <xsl:call-template name="t_count-characters">
                         <xsl:with-param name="p_input" select="$v_text"/>
                     </xsl:call-template>
-                    <xsl:value-of select="$v_seperator"/>
                     <!-- end of line -->
                     <xsl:value-of select="$v_new-line"/>
                 </xsl:if>
@@ -124,6 +119,7 @@
             <xsl:text>is.independent</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>page.count</xsl:text>
             <xsl:value-of select="$v_new-line"/>
            <!-- one line for each article -->
             <xsl:for-each select="descendant::tei:div[@type = 'article'][not(ancestor::tei:div[@type = 'bill'])]">
@@ -171,6 +167,8 @@
                     <xsl:with-param name="p_input" select="$v_plain-text"/>
                 </xsl:call-template>
                 <xsl:value-of select="$v_seperator"/>
+                <!-- number of pages -->
+                <xsl:value-of select="count(descendant::tei:pb[@ed='print'])+1"/>
                 <!-- end of line -->
                 <xsl:value-of select="$v_new-line"/>
             </xsl:for-each>
