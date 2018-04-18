@@ -2,7 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:oap="https://openarabicpe.github.io/ns" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-    xpath-default-namespace="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="xs" version="2.0">
+    xpath-default-namespace="http://www.tei-c.org/ns/1.0" exclude-result-prefixes="xs" version="3.0">
 
     <xsl:output method="xml" indent="yes" encoding="UTF-8" omit-xml-declaration="no" name="xml"/>
     <xsl:output method="text" indent="yes" encoding="UTF-8" omit-xml-declaration="yes" name="text"/>
@@ -67,8 +67,52 @@
                 </xsl:when>
             </xsl:choose>
         </xsl:variable>
+        <!-- stats per page -->
+        <!-- requires preprocessing -->
+        <xsl:variable name="v_plain-text">
+            <xsl:apply-templates mode="m_plain-text"/>
+        </xsl:variable>
+        <xsl:result-document href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-pages.csv" format="text">
+            <!-- csv head -->
+            <xsl:text>title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>page</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:value-of select="$v_new-line"/>
+            <!-- one line for each page -->
+            <xsl:for-each select="tokenize(normalize-space($v_plain-text),'\$pb')">
+                <xsl:variable name="v_page" select="substring-before(.,'$')"/>
+                <xsl:variable name="v_text" select="substring-after(.,'$')"/>
+                <xsl:if test="$v_page!=''">
+                    <!-- title -->
+                    <xsl:value-of select="$v_title"/><xsl:value-of select="$v_seperator"/>
+                    <!-- date -->
+                    <xsl:value-of select="$v_date"/><xsl:value-of select="$v_seperator"/>
+                    <!-- volume -->
+                    <xsl:value-of select="$v_volume"/><xsl:value-of select="$v_seperator"/>
+                    <!-- issue -->
+                    <xsl:value-of select="$v_issue"/><xsl:value-of select="$v_seperator"/>
+                    <!-- page information -->
+                    <xsl:value-of select="$v_page"/><xsl:value-of select="$v_seperator"/>
+                    <!-- number of words -->
+                    <xsl:call-template name="t_count-words">
+                        <xsl:with-param name="p_input" select="$v_text"/>
+                    </xsl:call-template>
+                    <xsl:value-of select="$v_seperator"/>
+                    <!-- number of characters -->
+                    <xsl:call-template name="t_count-characters">
+                        <xsl:with-param name="p_input" select="$v_text"/>
+                    </xsl:call-template>
+                    <xsl:value-of select="$v_seperator"/>
+                    <!-- end of line -->
+                    <xsl:value-of select="$v_new-line"/>
+                </xsl:if>
+            </xsl:for-each>
+        </xsl:result-document>
         <!-- stats per article -->
-        <!-- CSV -->
         <xsl:result-document href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-articles.csv" format="text">
             <!-- csv head -->
             <xsl:text>title</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -145,5 +189,15 @@
         </xsl:variable>-->
         <xsl:value-of select="number(string-length(replace(string($p_input), '\W', '')))"/>
     </xsl:template>
-
+    
+    <!-- plain text mode -->
+    <!-- plain text -->
+    <xsl:template match="text()" mode="m_plain-text">
+        <!-- in many instances adding whitespace before and after a text() node makes a lot of sense -->
+        <xsl:text> </xsl:text><xsl:value-of select="normalize-space(.)"/><xsl:text> </xsl:text>
+    </xsl:template>
+    <!-- replace page breaks with tokens that can be used for string split -->
+    <xsl:template match="tei:pb[@ed='print']" mode="m_plain-text">
+        <xsl:text>$pb</xsl:text><xsl:value-of select="@n"/><xsl:text>$</xsl:text>
+    </xsl:template>
 </xsl:stylesheet>
