@@ -56,7 +56,7 @@
         </xsl:copy>
     </xsl:template>
     <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
-    <xsl:template match="@change">
+    <xsl:template match="@change" mode="m_documentation">
         <xsl:attribute name="change">
                     <xsl:value-of select="concat(.,' #',$p_id-change)"/>
         </xsl:attribute>
@@ -65,11 +65,16 @@
     <!-- generate @xml:lang -->
     <xsl:template match="*[not(@xml:lang)][.!=''][not(ancestor-or-self::tei:facsimile)]">
         <xsl:copy>
-            <!-- add documentation of change -->
-                    <xsl:if test="not(@change)">
-                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
-                    </xsl:if>
             <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
+            <xsl:choose>
+                <xsl:when test="not(@change)">
+                    <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                </xsl:when>
+                <xsl:otherwise>
+                     <xsl:apply-templates mode="m_documentation" select="@change"/>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:attribute name="xml:lang">
                 <xsl:value-of select="ancestor::node()[@xml:lang != ''][1]/@xml:lang"/>
             </xsl:attribute>
