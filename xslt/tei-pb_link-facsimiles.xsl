@@ -50,7 +50,7 @@
         </xsl:copy>
     </xsl:template>
         <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
-    <xsl:template match="@change">
+    <xsl:template match="tei:pb/@change">
         <xsl:attribute name="change">
                     <xsl:value-of select="concat(.,' #',$p_id-change)"/>
         </xsl:attribute>
