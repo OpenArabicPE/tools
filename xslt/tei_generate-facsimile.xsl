@@ -29,22 +29,22 @@
     
     <!-- params to toggle certain links -->
     <xsl:param name="p_file-local" select="true()"/>
-    <xsl:param name="p_file-hathi" select="false()"/>
-    <xsl:param name="p_file-eap" select="false()"/>
+    <xsl:param name="p_file-hathi" select="true()"/>
+    <xsl:param name="p_file-eap" select="true()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
     
     <xsl:param name="p_generate-pbs" select="false()"/>
     
     <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
-    <xsl:param name="pEapIssueId" select="'191202'"/>
-    <!-- set-off between the EAP, which takes the printed page number as image number and Hathi, which doesn't; default is 0 -->
-    <xsl:param name="pImgStartHathiDifference" select="4" as="xs:integer"/>
+<!--    <xsl:param name="pEapIssueId" select="'191202'"/>-->
+    <!-- set-off between HathiTrust image numbers and the printed edition; default is 0 -->
+    <xsl:param name="p_image-setoff_hathi" select="12" as="xs:integer"/>
     <!-- set-off between EAP image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="11" as="xs:integer"/>
     <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
-    <xsl:param name="p_periodical" select="'haqaiq'"/>
+    <xsl:param name="p_periodical" select="'muqtabas'"/>
     <xsl:variable name="v_oclc">
         <xsl:choose>
             <xsl:when test="lower-case($p_periodical) = 'haqaiq'">
@@ -59,9 +59,14 @@
         </xsl:choose>
     </xsl:variable>
     <!-- volume in HathTrust collection: needs to be set -->
-    <xsl:variable name="vHathiTrustId" select="'njp.32101036074001'"/>
+    <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/>
     <!-- volume in EAP collection: needs to be set  -->
-    <xsl:variable name="vEapVolumeId" select="'6'"/>
+    <xsl:variable name="v_publication_eap" select="4" as="xs:integer"/>
+    <xsl:param name="p_volume-setoff_eap" select="-1" as="xs:integer"/>
+    <!-- EAP moved on to IIIF in late 2017 -->
+    <xsl:variable name="v_iiif-scheme" select="'https://'"/>
+    <xsl:variable name="v_iiif-server" select="'images.eap.bl.uk'"/>
+    <xsl:variable name="v_iiif-prefix" select="'/EAP119'"/>
     
     <!-- variables based on the input file -->
     <xsl:variable name="v_biblStructSource" select="//tei:sourceDesc/tei:biblStruct"/>
@@ -135,8 +140,7 @@
     <xsl:param name="p_year-sakhrit" select="'1906'"/>
     <xsl:variable name="v_url-sakhrit" select="concat($v_url-sakhrit-base,$v_journal-title-sakhrit,'/',$v_journal-title-sakhrit,'_',$p_year-sakhrit,'/Issue_',$v_issue,'/')"/>    
     
-    <!-- URL to EAP, always the same for the same periodical. In this case al-Muqtabas -->
-    <xsl:variable name="vFileUrlEap" select="concat('http://eap.bl.uk/EAPDigitalItems/EAP119/EAP119_1_4_',$vEapVolumeId,'-EAP119_muq',$pEapIssueId)"/>
+    
     
     <!-- Path to local files -->
     <xsl:variable name="v_name-base" select="concat('oclc_',$v_oclc,'-v_',$v_volume)"/>
@@ -263,19 +267,21 @@
     <xsl:template name="t_generate-facsimile">
         <xsl:param name="p_page-start" select="1"/>
         <xsl:param name="p_page-stop" select="20"/>
-        <xsl:variable name="vStartHathi" select="$p_page-start + $pImgStartHathiDifference"/>
         <xsl:element name="tei:surface">
             <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start)"/>
             <xsl:if test="$p_file-local = true()">
-                <xsl:element name="tei:graphic">
+                <!-- local TIFF copy -->
+                <!--<xsl:element name="tei:graphic">
                     <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_1')"/>
-                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start + $p_image-setoff_local,'000'),'.tif')"/>
+                    <!-\- when local files were downloaded from HathiTrust, the set-off should be similar -\->
+                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start + $p_image-setoff_hathi,'000'),'.tif')"/>
                     <xsl:attribute name="mimeType" select="'image/tiff'"/>
-                </xsl:element>
+                </xsl:element>-->
                 <!-- local JPEG copy -->
                 <xsl:element name="tei:graphic">
                     <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_2')"/>
-                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start + $p_image-setoff_local,'000'),'.jpg')"/>
+                    <!-- when local files were downloaded from HathiTrust, the set-off should be similar -->
+                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start + $p_image-setoff_hathi,'000'),'.jpg')"/>
                     <xsl:attribute name="mimeType" select="'image/jpeg'"/>
                 </xsl:element>
             </xsl:if>
@@ -283,7 +289,7 @@
             <xsl:if test="$p_file-hathi = true()">
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_3')"/>
-                <xsl:attribute name="url" select="concat($vFileUrlHathi,$vStartHathi)"/>
+                <xsl:attribute name="url" select="concat($vFileUrlHathi,$p_page-start + $p_image-setoff_hathi)"/>
                 <xsl:attribute name="mimeType" select="'image/jpeg'"/>
             </xsl:element>
             </xsl:if>
@@ -291,8 +297,11 @@
             <xsl:if test="$p_file-eap = true()">
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_4')"/>
-                <xsl:attribute name="url" select="concat($vFileUrlEap,'_',format-number($p_page-start + $p_image-setoff_eap,'000'),'_L.jpg')"/>
+<!--                <xsl:attribute name="url" select="concat($vFileUrlEap,'_',format-number($p_page-start + $p_image-setoff_eap,'000'),'_L.jpg')"/>-->
+                <!-- new url pointing to IIIF manifest -->
+                <xsl:attribute name="url" select="concat($v_iiif-scheme,$v_iiif-server,$v_iiif-prefix,'/EAP119_1_',$v_publication_eap,'_',$v_volume + $p_volume-setoff_eap,'/',$p_page-start + $p_image-setoff_eap,'.jp2')"/>
                 <xsl:attribute name="mimeType" select="'image/jpeg'"/>
+                <xsl:attribute name="type" select="'iiif'"/>
             </xsl:element>
             </xsl:if>
             <!-- link to archive.sakhrit -->
