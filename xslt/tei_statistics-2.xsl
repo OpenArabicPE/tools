@@ -23,7 +23,7 @@
     <xsl:template match="tei:text">
         <!-- variables -->
         <xsl:variable name="v_bibl-source" select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct"/>
-        <xsl:variable name="v_title" select="$v_bibl-source/tei:monogr/title[@xml:lang='ar-Latn-x-ijmes'][not(@type='sub')][1]"/>
+        <xsl:variable name="v_title-publication" select="$v_bibl-source/tei:monogr/title[@xml:lang='ar-Latn-x-ijmes'][not(@type='sub')][1]"/>
         <xsl:variable name="v_date" select="$v_bibl-source/tei:monogr/tei:imprint/tei:date[@when][1]/@when"/>
         <xsl:variable name="v_volume">
             <xsl:choose>
@@ -70,7 +70,7 @@
                 <xsl:apply-templates mode="m_plain-text"/>
             </xsl:variable>
             <!-- csv head -->
-            <xsl:text>title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -84,7 +84,7 @@
                 <xsl:variable name="v_text" select="substring-after(.,'$')"/>
                 <xsl:if test="$v_page!=''">
                     <!-- title -->
-                    <xsl:value-of select="$v_title"/><xsl:value-of select="$v_seperator"/>
+                    <xsl:value-of select="$v_title-publication"/><xsl:value-of select="$v_seperator"/>
                     <!-- date -->
                     <xsl:value-of select="$v_date"/><xsl:value-of select="$v_seperator"/>
                     <!-- volume -->
@@ -110,12 +110,14 @@
         <!-- stats per article -->
         <xsl:result-document href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-articles.csv" format="text">
             <!-- csv head -->
-            <xsl:text>title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>is.independent</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -128,7 +130,7 @@
                     <xsl:apply-templates mode="m_plain-text"/>
                 </xsl:variable>
                 <!-- title -->
-                <xsl:value-of select="$v_title"/><xsl:value-of select="$v_seperator"/>
+                <xsl:value-of select="$v_title-publication"/><xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="$v_date"/><xsl:value-of select="$v_seperator"/>
                 <!-- volume -->
@@ -137,6 +139,19 @@
                 <xsl:value-of select="$v_issue"/><xsl:value-of select="$v_seperator"/>
                 <!-- article ID -->
                 <xsl:value-of select="@xml:id"/><xsl:value-of select="$v_seperator"/>
+                <!-- article title -->
+                    <xsl:if test="@type = 'article' and ancestor::tei:div[@type = 'section']">
+                        <xsl:variable name="v_plain">
+                            <xsl:apply-templates select="ancestor::tei:div[@type = 'section']/tei:head" mode="m_plain-text"/>
+                        </xsl:variable>
+                        <xsl:value-of select="normalize-space($v_plain)"/>
+                        <xsl:text>: </xsl:text>
+                    </xsl:if>
+                    <xsl:variable name="v_plain">
+                        <xsl:apply-templates select="tei:head" mode="m_plain-text"/>
+                    </xsl:variable>
+                    <xsl:value-of select="normalize-space($v_plain)"/>
+                <xsl:value-of select="$v_seperator"/>
                 <!-- has author? -->
                 <xsl:choose>
                     <xsl:when test="tei:byline[descendant::tei:persName]">
@@ -147,7 +162,25 @@
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:value-of select="$v_seperator"/>
-                <!-- is independent? -->
+                 <!-- author names -->
+                    <xsl:for-each select="tei:byline/descendant::tei:persName">
+                        <xsl:choose>
+                            <xsl:when test="@ref">
+                                <xsl:value-of select="@ref"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:variable name="v_plain">
+                                    <xsl:apply-templates select="." mode="m_plain-text"/>
+                                </xsl:variable>
+                                <xsl:value-of select="normalize-space($v_plain)"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:if test="position()!=last()">
+                            <xsl:text>|</xsl:text>
+                        </xsl:if>
+                    </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- is independent or part of a section? -->
                 <xsl:choose>
                     <xsl:when test="ancestor::tei:div[@type = 'section']">
                         <xsl:text>n</xsl:text>
