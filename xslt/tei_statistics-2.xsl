@@ -15,6 +15,7 @@
     
     <xsl:variable name="v_new-line" select="'&#x0A;'"/>
     <xsl:variable name="v_seperator" select="';'"/>
+    <xsl:variable name="v_id-file" select="tei:TEI/@xml:id"/>
 
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
@@ -110,11 +111,11 @@
         <!-- stats per article -->
         <xsl:result-document href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-articles.csv" format="text">
             <!-- csv head -->
+            <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -129,7 +130,9 @@
                 <xsl:variable name="v_plain-text">
                     <xsl:apply-templates mode="m_plain-text"/>
                 </xsl:variable>
-                <!-- title -->
+                <!-- article ID -->
+                <xsl:value-of select="concat($v_id-file,'-',@xml:id)"/><xsl:value-of select="$v_seperator"/>
+                <!-- publication title -->
                 <xsl:value-of select="$v_title-publication"/><xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="$v_date"/><xsl:value-of select="$v_seperator"/>
@@ -137,8 +140,6 @@
                 <xsl:value-of select="$v_volume"/><xsl:value-of select="$v_seperator"/>
                 <!-- issue -->
                 <xsl:value-of select="$v_issue"/><xsl:value-of select="$v_seperator"/>
-                <!-- article ID -->
-                <xsl:value-of select="@xml:id"/><xsl:value-of select="$v_seperator"/>
                 <!-- article title -->
                     <xsl:if test="@type = 'article' and ancestor::tei:div[@type = 'section']">
                         <xsl:variable name="v_plain">
