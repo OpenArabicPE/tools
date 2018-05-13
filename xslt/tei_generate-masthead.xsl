@@ -160,7 +160,7 @@
                     <xsl:copy-of select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
                     <!-- here follows the date line -->
                     <lb/>
-                    <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication -->
+                    <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication. This should be automatically toggled -->
                     <xsl:apply-templates select="$vBiblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
                     <xsl:text> في </xsl:text>
                     <xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_islamic']" mode="mBibl"/>
