@@ -14,9 +14,10 @@
     <xsl:variable name="v_geojson-closer">
         <xsl:text>]}</xsl:text>
     </xsl:variable>
+    <xsl:variable name="v_new-line" select="'&#x0A;'"/>
     
     <xsl:template match="/">
-        <xsl:result-document href="test_geojson-{ format-date(current-date(),'[Y0001]-[M01]-[D01]')}.geojson" format="text">
+        <xsl:result-document href="../_output/test_geojson-{ format-date(current-date(),'[Y0001]-[M01]-[D01]')}.geojson" format="text">
             <xsl:value-of select="$v_geojson-opener"/>
             <xsl:apply-templates select="descendant::tei:place"/>
             <xsl:value-of select="$v_geojson-closer"/>
@@ -56,7 +57,7 @@
             <xsl:text>}}</xsl:text>
             <!-- add comma for following  -->
             <xsl:if test="following::tei:place">
-                <xsl:text>,</xsl:text>
+                <xsl:value-of select="concat(', ',$v_new-line)"/>
             </xsl:if>
         </xsl:if>
     </xsl:template>
