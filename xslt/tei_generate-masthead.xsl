@@ -157,11 +157,12 @@
                         </xsl:choose>
                     </xsl:element>
                     <lb/>
-                    <xsl:copy-of select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
+                    <xsl:apply-templates select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]" mode="m_copy"/>
+<!--                    <xsl:copy-of select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>-->
                     <!-- here follows the date line -->
                     <lb/>
                     <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication. This should be automatically toggled -->
-                    <xsl:apply-templates select="$vBiblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
+                    <xsl:apply-templates select="$vBiblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]" mode="m_copy"/>
                     <xsl:text> في </xsl:text>
                     <xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_islamic']" mode="mBibl"/>
                     <xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/>
@@ -185,7 +186,7 @@
                             </xsl:choose>
         </xsl:variable>
         <xsl:copy>
-            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="@*" mode="m_copy"/>
             <xsl:attribute name="xml:lang" select="'ar'"/>
             <xsl:value-of select="translate(format-number(number(tokenize($v_date, '-')[3]),'#'),$vStringTranscribeFromIjmes,$vStringTranscribeToArabic)"/>
             <xsl:text> </xsl:text>
@@ -201,6 +202,15 @@
         <xsl:if test="following-sibling::tei:date">
             <xsl:text> و </xsl:text>
         </xsl:if>
+    </xsl:template>
+    
+    <xsl:template match="node()" mode="m_copy">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()" mode="m_copy"/>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template match="@*[not(name()='xml:id')]" mode="m_copy">
+        <xsl:copy/>
     </xsl:template>
     
 </xsl:stylesheet>
