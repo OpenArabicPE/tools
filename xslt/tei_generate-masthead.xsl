@@ -148,18 +148,24 @@
                     <lb/>
                     <xsl:apply-templates mode="m_copy" select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
                     <!--                    <xsl:copy-of select="$vBiblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>-->
-                    <!-- here follows the date line -->
-                    <lb/>
                     <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication. This should be automatically toggled, for instance on the basis of the oclc number -->
                     <xsl:choose>
                         <!-- al-Ḥaqāʾiq -->
                         <xsl:when test="$vBiblSource//tei:idno[@type='oclc'] = '644997575'">
+                            <!-- here follows the date line -->
+                            <lb/>
                             <xsl:apply-templates select="$vBiblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
                             <xsl:text>في </xsl:text>
                             <xsl:apply-templates mode="mBibl" select="$vBiblSource//tei:date[@calendar='#cal_islamic']"/>
                             <!--<xsl:text>و</xsl:text><xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/><xsl:text>و</xsl:text><xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_gregorian']" mode="mBibl"/>-->
                         </xsl:when>
                         <!-- al-Muqtabas -->
+                        <xsl:when test="$vBiblSource//tei:idno[@type='oclc'] = '4770057679' and $vBiblSource//tei:biblScope[@unit='volume']/@from &lt; 6">
+                            <!-- here follows the date line -->
+                            <lb/>
+                            <xsl:apply-templates mode="mBibl" select="$vBiblSource//tei:date[@calendar='#cal_islamic']"/>
+                            <!--<xsl:text>و</xsl:text><xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/><xsl:text>و</xsl:text><xsl:apply-templates select="$vBiblSource//tei:date[@calendar='#cal_gregorian']" mode="mBibl"/>-->
+                        </xsl:when>
                     </xsl:choose>
                 </bibl>
             </div>
