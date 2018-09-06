@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet exclude-result-prefixes="xs xd" version="2.0" xmlns="http://www.tei-c.org/ns/1.0" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xd="http://www.pnp-software.com/XSLTdoc" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet exclude-result-prefixes="xs xd" version="3.0" xmlns="http://www.tei-c.org/ns/1.0" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xd="http://www.pnp-software.com/XSLTdoc" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xd:doc scope="stylesheet">
         <xd:desc>
             <xd:p>This stylesheet generates the masthead of issues based on the information in the teiHeader</xd:p>
@@ -8,11 +8,7 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no"/>
     <!--    <xsl:include href="https://rawgit.com/tillgrallert/xslt-calendar-conversion/master/date-function.xsl"/>-->
     <xsl:include href="../../../xslt-functions/functions_core.xsl"/>
-    <!-- identify the author of the change by means of a @xml:id -->
-    <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
-    <!-- param to toggle debugging mode -->
-    <xsl:param name="p_debug" select="true()"/>
     <!-- identity transform -->
     <xsl:template match="@* | node()">
         <xsl:copy>
@@ -43,6 +39,7 @@
             <xsl:value-of select="concat(.,' #',$p_id-change)"/>
         </xsl:attribute>
     </xsl:template>
+    
     <!-- set language -->
     <xsl:variable name="v_lang" select="'ar'"/>
     <!-- retrieve bibliographic information from the teiHeader -->
@@ -60,7 +57,7 @@
         <xsl:if test="preceding::tei:pb[@ed='print']">
             <xsl:copy>
                 <xsl:apply-templates select="@*"/>
-                <xsl:apply-templates mode="m_documentation" select="@change"/>
+                <!--<xsl:apply-templates mode="m_documentation" select="@change"/>-->
             </xsl:copy>
         </xsl:if>
     </xsl:template>
@@ -184,6 +181,11 @@
         </xsl:variable>
         <xsl:copy>
             <xsl:apply-templates mode="m_copy" select="@*"/>
+            <xsl:if test="$p_verbose = true()">
+                <xsl:message>
+                    <xsl:text>Copied node </xsl:text><xsl:value-of select="@xml:id"/><xsl:text> and applied templates to its attributes.</xsl:text>
+                </xsl:message>
+            </xsl:if>
             <xsl:attribute name="xml:lang" select="'ar'"/>
             <xsl:value-of select="translate(format-number(number(tokenize($v_date, '-')[3]),'#'),$vStringTranscribeFromIjmes,$vStringTranscribeToArabic)"/>
             <xsl:text/>
@@ -193,16 +195,15 @@
                 <xsl:with-param name="p_calendar" select="@calendar"/>
                 <xsl:with-param name="pMode" select="'name'"/>
             </xsl:call-template>
-            <!--             <xsl:text>سنة </xsl:text>-->
+                         <xsl:text> سنة </xsl:text>
             <xsl:value-of select="translate(tokenize($v_date, '-')[1],$vStringTranscribeFromIjmes,$vStringTranscribeToArabic)"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="node()" mode="m_copy">
+    <xsl:template match="node() | @*" mode="m_copy">
         <xsl:copy>
             <xsl:apply-templates mode="m_copy" select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="@*[not(name()='xml:id')]" mode="m_copy">
-        <xsl:copy/>
-    </xsl:template>
+    <xsl:template match="@xml:id" mode="m_copy"/>
+    
 </xsl:stylesheet>
