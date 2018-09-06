@@ -16,7 +16,7 @@
     <!-- locate authority files -->
     <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
     <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
-    <xsl:param name="p_file-name-personography" select="'entities_master.TEIP5.xml'"/>
+    <xsl:param name="p_file-name-personography" select="'personography_OpenArabicPE.TEIP5.xml'"/>
     
     <!-- import functions -->
     <xsl:import href="../../tools/xslt/openarabicpe_functions.xsl"/>
