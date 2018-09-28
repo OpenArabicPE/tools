@@ -41,7 +41,9 @@
                 <xsl:element name="att">ed</xsl:element>
                 <xsl:text>="print" and </xsl:text>
                 <xsl:element name="att">edRef</xsl:element>
-                <xsl:text>="#edition_1" for every</xsl:text>
+                <xsl:text>="</xsl:text>
+                <xsl:value-of select="$p_id-print-edition"/>
+                <xsl:text>" for every</xsl:text>
                 <xsl:element name="gi">pb</xsl:element>
                 <xsl:text> that was not of </xsl:text>
                 <xsl:element name="att">ed</xsl:element>
@@ -75,9 +77,7 @@
                 <xsl:text>print</xsl:text>
             </xsl:attribute>
             <!-- add reference to the standard @xml:id of the first edition -->
-            <xsl:attribute name="edRef">
-                <xsl:text>#edition_1</xsl:text>
-            </xsl:attribute>
+            <xsl:attribute name="edRef" select="$p_id-print-edition"/>
             <xsl:attribute name="n">
                 <xsl:value-of
                     select="count(preceding::tei:pb[not(@ed = 'shamela')]) + $v_page-first"/>
