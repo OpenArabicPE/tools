@@ -153,6 +153,7 @@
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.death</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>is.independent</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -217,17 +218,14 @@
                 <!-- author names -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
                     <xsl:value-of select="oap:query-personography(.,$v_personography,'name',$p_output-language)"/>
-                    <!--<xsl:choose>
-                        <xsl:when test="@ref">
-                            <xsl:value-of select="@ref"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:variable name="v_plain">
-                                <xsl:apply-templates mode="m_plain-text" select="."/>
-                            </xsl:variable>
-                            <xsl:value-of select="normalize-space($v_plain)"/>
-                        </xsl:otherwise>
-                    </xsl:choose>-->
+                    <xsl:if test="position() != last()">
+                        <xsl:text>|</xsl:text>
+                    </xsl:if>
+                </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- author id -->
+                <xsl:for-each select="tei:byline/descendant::tei:persName">
+                    <xsl:value-of select="@ref"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
