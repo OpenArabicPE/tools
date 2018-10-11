@@ -4,6 +4,9 @@
     xmlns:xd="http://www.pnp-software.com/XSLTdoc" xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0">
+    
+    <xsl:include href="../../authority-files/xslt/query-viaf.xsl"/>
+    
     <!-- functions -->
     <xsl:function name="oap:query-gazetteer">
         <xsl:param name="placeName"/>
@@ -66,16 +69,24 @@
     <xsl:function name="oap:query-personography">
         <xsl:param name="persName"/>
         <xsl:param name="personography"/>
-        <!-- values are 'birth', 'death', 'name' -->
+        <!-- values are 'birth', 'death', 'name', 'wiki', 'countWorks' -->
         <xsl:param name="mode"/>
         <xsl:param name="output-language"/>
         <xsl:choose>
             <!-- test for @ref pointing to VIAF -->
             <xsl:when test="starts-with($persName/@ref, 'viaf:')">
                 <xsl:variable name="v_viaf-id" select="replace($persName/@ref, 'viaf:(\d+)', '$1')"/>
-                <!-- select entry from the gazetteer with the same geonames ID -->
+                <!-- select entry from the gazetteer with the same VIAF ID -->
                 <xsl:variable name="v_person"
                     select="$personography/descendant::tei:person[tei:idno[@type = 'viaf'] = $v_viaf-id][1]"/>
+                <xsl:variable name="v_person-viaf">
+                    <xsl:call-template name="t_query-viaf-sru">
+                        <xsl:with-param name="p_input-type" select="'id'"/>
+                        <xsl:with-param name="p_search-term" select="$v_viaf-id"/>
+                        <xsl:with-param name="p_include-bibliograpy-in-output" select="true()"/>
+                        <xsl:with-param name="p_output-mode" select="'tei'"/>
+                    </xsl:call-template>
+                </xsl:variable>
                 <xsl:choose>
                     <xsl:when test="$mode = 'birth'">
                         <xsl:value-of select="$v_person/tei:birth/@when"/>
@@ -85,6 +96,11 @@
                     </xsl:when>
                     <xsl:when test="$mode = 'name'">
                         <xsl:choose>
+                            <!-- preference for names without titles etc. -->
+                            <xsl:when test="$v_person/tei:persName[not(tei:addName)][@xml:lang = $output-language]">
+                                <xsl:value-of select="$v_person/tei:persName[not(tei:addName)][@xml:lang = $output-language][1]"/>
+                            </xsl:when>
+                            <!-- fallback to first full name -->
                             <xsl:when test="$v_person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language]">
                                 <xsl:value-of select="$v_person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language][1]"/>
                             </xsl:when>
@@ -96,6 +112,10 @@
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:when>
+                    <!-- return number of works in viaf -->
+                    <xsl:when test="$mode = 'countWorks'">
+                         <xsl:value-of select="count($v_person-viaf/descendant::tei:listBibl/tei:bibl)"/>
+                    </xsl:when>
                 </xsl:choose>
             </xsl:when>
             <!-- return original input name if nothing else is fond -->
@@ -105,7 +125,7 @@
             <!-- otherwise: no data -->
             <xsl:otherwise>
                 <xsl:message>
-                    <xsl:text>no data found for </xsl:text><xsl:value-of select="$persName"/>
+                    <xsl:text>no authority data found for </xsl:text><xsl:value-of select="$persName"/>
                 </xsl:message>
             </xsl:otherwise>
         </xsl:choose>
