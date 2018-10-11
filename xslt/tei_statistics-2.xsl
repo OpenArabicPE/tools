@@ -156,6 +156,7 @@
             <xsl:text>author.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.death</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>works.viaf.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>is.independent</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>byline.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>byline.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -242,6 +243,14 @@
                 <!-- death -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
                     <xsl:value-of select="oap:query-personography(.,$v_personography,'death','')"/>
+                    <xsl:if test="position() != last()">
+                        <xsl:text>|</xsl:text>
+                    </xsl:if>
+                </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- number of works in VIAF -->
+                <xsl:for-each select="tei:byline/descendant::tei:persName">
+                    <xsl:value-of select="oap:query-personography(.,$v_personography,'countWorks','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
