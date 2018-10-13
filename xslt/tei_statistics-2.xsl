@@ -34,8 +34,9 @@
     </xsl:template>
     <xsl:template match="tei:text">
         <!-- variables -->
+        <!-- select the first edition as source -->
         <xsl:variable name="v_bibl-source"
-            select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct"/>
+            select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct[1]"/>
         <xsl:variable name="v_title-publication"
             select="$v_bibl-source/tei:monogr/title[@xml:lang = 'ar-Latn-x-ijmes'][not(@type = 'sub')][1]"/>
         <xsl:variable name="v_date"
@@ -152,7 +153,7 @@
             <!-- information on article -->
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>author</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.name</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.death</xsl:text><xsl:value-of select="$v_seperator"/>
