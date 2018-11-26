@@ -5,11 +5,13 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0" version="2.0">
     <xsl:output method="xml" encoding="UTF-8" indent="no" omit-xml-declaration="no" version="1.0"/>
-    <xsl:include href="https://cdn.rawgit.com/tillgrallert/xslt-calendar-conversion/master/date-function.xsl"/>
+    <xsl:include href="../../../xslt-calendar-conversion/date-function.xsl"/>
     
     <!-- this stylesheet goes through a TEI file and looks for all <tei:date> elements that have @when-custom but no @when attribute -->
     
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    <!-- identify the author of the change by means of a @xml:id -->
+    <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <xsl:template match="@* |node()">
         <xsl:copy>
@@ -21,6 +23,15 @@
     <xsl:template match="tei:date[string-length(@when-custom)=10][not(@when)]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
+                    <xsl:choose>
+                        <xsl:when test="not(@change)">
+                            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates mode="m_documentation" select="@change"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
             <xsl:attribute name="when">
                 <xsl:choose>
                     <xsl:when test="@datingMethod='#cal_islamic'">
@@ -48,6 +59,15 @@
     <xsl:template match="tei:date[string-length(@when-custom)=4][@datingMethod='#cal_islamic'][not(@when)][not(@notBefore)]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
+                    <xsl:choose>
+                        <xsl:when test="not(@change)">
+                            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:apply-templates mode="m_documentation" select="@change"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
             <xsl:variable name="v_date-h-1"
                 select="concat(@when-custom,'-01-01')"/>
             <xsl:variable name="v_date-g-1">
@@ -79,16 +99,22 @@
     <!-- document changes -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:element name="change">
-                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
-                <xsl:attribute name="who" select="$p_id-editor"/>
-                <xsl:text>Automatically added computed Gregorian dates to the </xsl:text>
-                <xsl:element name="att">when</xsl:element>
-                <xsl:text> attributes of all non-Gregorian </xsl:text>
-                <xsl:element name="gi">date</xsl:element>
-                <xsl:text> elements.</xsl:text>
+                <xsl:attribute name="when"
+                    select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
+                <xsl:attribute name="who" select="concat('#', $p_id-editor)"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
+                <xsl:attribute name="xml:lang" select="'en'"/>
+                <xsl:text>Automatically added computed Gregorian dates to the </xsl:text><xsl:element name="att">when</xsl:element><xsl:text> attributes of all non-Gregorian </xsl:text><xsl:element name="gi">date</xsl:element><xsl:text> elements.</xsl:text>
             </xsl:element>
-            <xsl:apply-templates select="@* | node()"/>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
+    </xsl:template>
+    <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
+    <xsl:template match="@change" mode="m_documentation">
+        <xsl:attribute name="change">
+            <xsl:value-of select="concat(., ' #', $p_id-change)"/>
+        </xsl:attribute>
     </xsl:template>
 </xsl:stylesheet>

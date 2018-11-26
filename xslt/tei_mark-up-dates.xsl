@@ -84,6 +84,12 @@
                             <xsl:attribute name="calendar" select="'#cal_gregorian'"/>
                             <xsl:attribute name="when" select="$v_year-iso"/>
                         </xsl:when>
+                        <!-- since we deal with mostly Islamicate Arabic material, we also assume that all dates before 1500 to be hijrī -->
+                        <xsl:when test="$v_num/@value &lt;= 1499">
+                            <xsl:attribute name="calendar" select="'#cal_islamic'"/>
+                            <xsl:attribute name="datingMethod" select="'#cal_islamic'"/>
+                            <xsl:attribute name="when-custom" select="$v_year-iso"/>
+                        </xsl:when>
                         <xsl:otherwise>
                             <xsl:attribute name="when" select="$v_year-iso"/>
                         </xsl:otherwise>

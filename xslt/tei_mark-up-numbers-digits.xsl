@@ -18,9 +18,10 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- parameter to select whether output of numerals should be converted into Arabic script or not -->
     <xsl:param name="p_convert-to-arabic" select="true()"/>
+    <xsl:param name="p_format-numbers" select="false()"/>
     
     
     <xsl:variable name="v_string-transcribe-ijmes" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāūīwy0123456789'"/>
@@ -38,8 +39,11 @@
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:element name="tei:change">
-                <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
-                <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
+                <xsl:attribute name="when"
+                    select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
+                <xsl:attribute name="who" select="concat('#', $p_id-editor)"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
+                <xsl:attribute name="xml:lang" select="'en'"/>
                 <xsl:text>Wrapped all numerals in </xsl:text><tei:gi>num</tei:gi><xsl:text> with </xsl:text><tei:att>value</tei:att><xsl:text> recording their value in standardised form and converted them into Arabic numerals to reflect the original text.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
@@ -48,7 +52,7 @@
     
     <!-- mark up numerals in the text of the documents body only -->
     <xsl:template match="node()[ancestor-or-self::tei:body][not(self::tei:num)]/text()">
-        <xsl:analyze-string select="." regex="(\d)(\d*)">
+        <xsl:analyze-string select="." regex="(\d+)">
             <xsl:matching-substring>
                 <!-- \d now also matches numbers in Arabic script -->
                 <!-- somtimes in shamela's transcription numerals are not surrounded by whitespace -->
@@ -58,15 +62,15 @@
                         <xsl:choose>
                             <!-- check if there are numbers in Arabic script -->
                             <xsl:when test="contains($v_string-transcribe-arabic,regex-group(1))">
-                                <xsl:value-of select="number(translate(concat(regex-group(1),regex-group(2)),$v_string-transcribe-arabic,$v_string-transcribe-ijmes))"/>
+                                <xsl:value-of select="number(translate(regex-group(1),$v_string-transcribe-arabic,$v_string-transcribe-ijmes))"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="number(concat(regex-group(1),regex-group(2)))"/>
+                                <xsl:value-of select="number(regex-group(1))"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:variable>
                     <xsl:attribute name="type" select="'auto-markup'"/>
-                    <xsl:attribute name="resp" select="concat('#',$p_id-editor)"/>
+                    <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
                     <xsl:attribute name="value" select="$v_value"/>
                     <xsl:attribute name="xml:lang">
                         <xsl:choose>
@@ -79,11 +83,17 @@
                         </xsl:choose>
                     </xsl:attribute>
                     <xsl:choose>
-                        <xsl:when test="$p_convert-to-arabic = true()">
+                        <xsl:when test="$p_convert-to-arabic = true() and $p_format-numbers = true()">
                             <xsl:value-of select="translate(format-number($v_value,'###.##0,##','ar_default'),$v_string-transcribe-ijmes,$v_string-transcribe-arabic)"/>
                         </xsl:when>
-                        <xsl:otherwise>
+                        <xsl:when test="$p_convert-to-arabic = true()">
+                            <xsl:value-of select="translate($v_value,$v_string-transcribe-ijmes,$v_string-transcribe-arabic)"/>
+                        </xsl:when>
+                        <xsl:when test="$p_format-numbers = true()">
                             <xsl:value-of select="format-number($v_value,'###.##0,##','ar_default')"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:value-of select="$v_value"/>
                         </xsl:otherwise>
                     </xsl:choose>
                 </xsl:element>
