@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet 
-    exclude-result-prefixes="xs xd" 
+    exclude-result-prefixes="xs xd oape" 
     version="3.0" 
     xmlns="http://www.tei-c.org/ns/1.0" 
     xmlns:tei="http://www.tei-c.org/ns/1.0" 
@@ -179,7 +179,7 @@
                             <!-- here follows the date line -->
                             <lb/>
                             <xsl:apply-templates mode="mBibl" select="$v_biblSource//tei:date[@calendar='#cal_islamic']"/>
-                            <xsl:text>موافق ب</xsl:text>
+                            <xsl:text> موافق </xsl:text>
                             <xsl:copy-of select="oape:date-format-iso-string-to-tei($v_biblSource//tei:date[@when][1]/@when,'#cal_julian', true(), false(), 'ar')"/>
                         </xsl:when>
                     </xsl:choose>
