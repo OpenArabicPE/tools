@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:mods="http://www.loc.gov/mods/v3" xmlns:oap="https://openarabicpe.github.io/ns"
+    xmlns:mods="http://www.loc.gov/mods/v3" xmlns:oape="https://openarabicpe.github.io/ns"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xpath-default-namespace="http://www.loc.gov/mods/v3" exclude-result-prefixes="xs xd"
     version="2.0">
@@ -16,7 +16,7 @@
     </xd:doc>
 
     <!-- include translator for JSON -->
-    <xsl:include href="oap-xml-to-json.xsl"/>
+    <xsl:include href="oape-xml-to-json.xsl"/>
     
     <!-- this defines the master files for entities; default is '../../authority-files/tei/entities_master.TEIP5.xml'; other options include ../../digital-mawaqif/tei/entities_master.TEIP5.xml -->
     <xsl:param name="p_file-entities-master" select="doc('../../authority-files/tei/entities_master.TEIP5.xml')"/>
@@ -28,7 +28,7 @@
     <xsl:template match="modsCollection">
         <xsl:variable name="v_id-file" select="replace(base-uri(), '.*(oclc_\d+)(-i_\d+)?.*', '$1$2')"/>
         <xsl:variable name="v_array-result">
-            <oap:array>
+            <oape:array>
                 <!-- group by author: check if viaf references are available -->
                 <xsl:for-each-group select="mods"
                     group-by="if(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@authority='viaf') then(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut']/@valueURI) else(descendant::name[role/roleTerm[@authority = 'marcrelator'] = 'aut'])">
@@ -48,55 +48,55 @@
                         <xsl:text> </xsl:text>
                         <xsl:value-of select="current-group()[1]/descendant::name[1]/namePart[@type = 'family']"/>
                     </xsl:variable>
-                    <oap:object>
-                        <oap:item>
-                            <oap:key>name</oap:key>
-                            <oap:value>
+                    <oape:object>
+                        <oape:item>
+                            <oape:key>name</oape:key>
+                            <oape:value>
                                 <xsl:value-of select="normalize-space($v_author)"/>
-                            </oap:value>
-                        </oap:item>
-                        <oap:item>
-                            <oap:key>viaf</oap:key>
-                            <oap:value>
+                            </oape:value>
+                        </oape:item>
+                        <oape:item>
+                            <oape:key>viaf</oape:key>
+                            <oape:value>
                                 <xsl:value-of select="normalize-space($v_id-viaf)"/>
-                            </oap:value>
-                        </oap:item>
+                            </oape:value>
+                        </oape:item>
                         <!-- articles -->
-                        <oap:array>
-                            <oap:key>articles</oap:key>
-                            <oap:object>
-                                <oap:item>
-                                    <oap:key>total</oap:key>
-                                    <oap:value>
+                        <oape:array>
+                            <oape:key>articles</oape:key>
+                            <oape:object>
+                                <oape:item>
+                                    <oape:key>total</oape:key>
+                                    <oape:value>
                                         <xsl:value-of select="number(count(current-group()))"/>
-                                    </oap:value>
-                                </oap:item>
-                            </oap:object>
+                                    </oape:value>
+                                </oape:item>
+                            </oape:object>
                             <!-- articles etc. per year -->
                             <xsl:for-each-group select="current-group()" group-by="substring((descendant::dateIssued[@encoding = 'w3cdtf']), 1, 4)">
                                 <xsl:sort select="current-grouping-key()"/>
                                 <!-- generate number of pages -->
                                 <xsl:variable name="v_pages">
-                                    <oap:object>
+                                    <oape:object>
                                         <xsl:for-each select="current-group()/descendant-or-self::mods">
                                             <xsl:if test="descendant::extent[@unit='pages']/end!=''">
-                                            <oap:item>
-                                                <oap:key>pages</oap:key>
-                                                <oap:value>
+                                            <oape:item>
+                                                <oape:key>pages</oape:key>
+                                                <oape:value>
                                                     <xsl:value-of select="descendant::extent[@unit='pages']/end - descendant::extent[@unit='pages']/start +1"/>
-                                                </oap:value>
-                                            </oap:item>
+                                                </oape:value>
+                                            </oape:item>
                                             </xsl:if>
                                         </xsl:for-each>
-                                    </oap:object>
+                                    </oape:object>
                                 </xsl:variable>
                                 <xsl:variable name="v_urls">
-                                    <oap:array>
-                                        <oap:key>urls</oap:key>
+                                    <oape:array>
+                                        <oape:key>urls</oape:key>
                                         <xsl:for-each select="current-group()/descendant-or-self::mods">
-                                            <oap:value><xsl:value-of select="descendant::location/url"/></oap:value>
+                                            <oape:value><xsl:value-of select="descendant::location/url"/></oape:value>
                                         </xsl:for-each>
-                                    </oap:array>
+                                    </oape:array>
                                 </xsl:variable>
                                 <!-- age of author at publication -->
                                 <xsl:variable name="v_age-author">
@@ -112,51 +112,51 @@
                                         </xsl:otherwise>
                                     </xsl:choose>
                                 </xsl:variable>
-                                <oap:object>
-                                    <oap:item>
-                                        <oap:key>year</oap:key>
-                                        <oap:value>
+                                <oape:object>
+                                    <oape:item>
+                                        <oape:key>year</oape:key>
+                                        <oape:value>
                                             <xsl:value-of select="current-grouping-key()"/>
-                                        </oap:value>
-                                    </oap:item>
+                                        </oape:value>
+                                    </oape:item>
                                     <!-- age at publication -->
-                                    <oap:item>
-                                        <oap:key>age</oap:key>
-                                        <oap:value>
+                                    <oape:item>
+                                        <oape:key>age</oape:key>
+                                        <oape:value>
                                             <xsl:value-of select="$v_age-author"/>
-                                        </oap:value>
-                                    </oap:item>
+                                        </oape:value>
+                                    </oape:item>
                                     <!-- articles per year -->
-                                    <oap:item>
-                                        <oap:key>articles</oap:key>
-                                        <oap:value>
+                                    <oape:item>
+                                        <oape:key>articles</oape:key>
+                                        <oape:value>
                                             <xsl:value-of select="number(count(current-group()))"/>
-                                        </oap:value>
-                                    </oap:item>
+                                        </oape:value>
+                                    </oape:item>
                                     <!-- pages per year -->
-                                    <oap:item>
-                                        <oap:key>pages</oap:key>
-                                        <oap:value><xsl:value-of select="sum($v_pages/descendant::oap:value)"/>
+                                    <oape:item>
+                                        <oape:key>pages</oape:key>
+                                        <oape:value><xsl:value-of select="sum($v_pages/descendant::oape:value)"/>
 <!--                                        <xsl:copy-of select="$v_pages"/>-->
-                                        </oap:value>
-                                    </oap:item>
+                                        </oape:value>
+                                    </oape:item>
                                     <!-- URLs to articles -->
                                     <xsl:copy-of select="$v_urls"></xsl:copy-of>
-                                </oap:object>
+                                </oape:object>
                             </xsl:for-each-group>
-                        </oap:array>
-                    </oap:object>
+                        </oape:array>
+                    </oape:object>
                 </xsl:for-each-group>
-            </oap:array>
+            </oape:array>
         </xsl:variable>
         <!-- JSON -->
         <xsl:result-document href="../statistics/{$v_id-file}-stats_mods.json" format="text">
             <xsl:text>[</xsl:text>
             <xsl:apply-templates
-                select="$v_array-result/descendant::oap:object[oap:item/oap:key/text() = 'name']"
+                select="$v_array-result/descendant::oape:object[oape:item/oape:key/text() = 'name']"
                 mode="m_oap-to-json">
                 <xsl:sort
-                    select="descendant::oap:key[text() = 'total']/following-sibling::oap:value"
+                    select="descendant::oape:key[text() = 'total']/following-sibling::oape:value"
                     order="descending" data-type="number"/>
             </xsl:apply-templates>
             <xsl:text>]</xsl:text>
