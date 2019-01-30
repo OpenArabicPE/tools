@@ -21,6 +21,7 @@
     <!-- import functions -->
     <xsl:import href="../../tools/xslt/openarabicpe_functions.xsl"/>
     
+    <!-- load the authority files -->
     <xsl:variable name="v_gazetteer"
         select="doc(concat($p_path-authority-files, $p_file-name-gazetteer))"/>
     <xsl:variable name="v_personography"
@@ -28,7 +29,7 @@
     <!-- variables for CSV output -->
     <xsl:variable name="v_new-line" select="'&#x0A;'"/>
     <xsl:variable name="v_seperator" select="';'"/>
-    <xsl:variable name="v_id-file" select="tei:TEI/@xml:id"/>
+    <xsl:variable name="v_id-file" select="if(tei:TEI/@xml:id) then(tei:TEI/@xml:id) else(substring-before(tokenize(base-uri(),'/')[last()],'.TEIP5'))"/>
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
     </xsl:template>
@@ -85,7 +86,7 @@
         </xsl:variable>
         <xsl:variable name="v_publication-place" select="$v_bibl-source/tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1]"/>
         <!-- stats per page -->
-        <xsl:result-document format="text" href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-pages.csv">
+        <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-pages.csv">
             <!-- requires preprocessing -->
             <xsl:variable name="v_plain-text">
                 <xsl:apply-templates mode="m_plain-text"/>
@@ -140,7 +141,7 @@
             </xsl:for-each>
         </xsl:result-document>
         <!-- stats per article -->
-        <xsl:result-document format="text" href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-articles.csv">
+        <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-articles.csv">
             <!-- csv head -->
             <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
@@ -154,7 +155,8 @@
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>author.id</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.id.viaf</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.death</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>works.viaf.count</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -225,12 +227,17 @@
                     </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
-                <!-- author id -->
+                <!-- author id: VIAF -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
-                    <xsl:value-of select="@ref"/>
+                    <xsl:value-of select="replace(@ref,'.*(viaf:\d+).*','$1')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
+                </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- author id: OpenArabicPE (local authority file) -->
+                <xsl:for-each select="tei:byline/descendant::tei:persName">
+                    <xsl:value-of select="replace(@ref,'.*(oape:pers:\d+).*','$1')"/>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- birth -->
@@ -332,7 +339,7 @@
                 <xsl:value-of select="$v_new-line"/>
             </xsl:for-each>
         </xsl:result-document>
-        <xsl:result-document format="text" href="../_output/statistics/{ancestor::tei:TEI/@xml:id}-stats_tei-referenced-works.csv">
+        <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-referenced-works.csv">
             <!-- csv head -->
             <xsl:text>bibl.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
@@ -357,7 +364,7 @@
             <!-- end of head -->
             <xsl:value-of select="$v_new-line"/>
             <!-- one line for each referced work: <bibl>, <title> -->
-            <xsl:for-each select="tei:body/descendant::tei:bibl | tei:title[not(ancestor::tei:bibl)]">
+            <xsl:for-each select="tei:body/descendant::tei:bibl | tei:body/descendant::tei:biblStruct | tei:title[not(ancestor::tei:bibl | ancestor::tei:biblStruct)]">
                 <!-- preprocess -->
                 <xsl:variable name="v_plain-text">
                     <xsl:apply-templates select="." mode="m_plain-text"/>
