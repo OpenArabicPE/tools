@@ -116,7 +116,7 @@
                         </xsl:choose>
                     </xsl:when>
                     <!-- return number of works in viaf -->
-                    <xsl:when test="$mode = 'countWorks'">
+                    <xsl:when test="$mode = 'countWorks' and $v_viaf-id!=''">
                         <xsl:variable name="v_person-viaf">
                     <xsl:call-template name="t_query-viaf-sru">
                         <xsl:with-param name="p_input-type" select="'id'"/>
