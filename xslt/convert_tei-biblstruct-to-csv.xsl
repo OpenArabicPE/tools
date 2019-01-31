@@ -8,11 +8,11 @@
     <xsl:output encoding="UTF-8" indent="yes" method="text" name="text" omit-xml-declaration="yes"/>
     <xd:doc scope="stylesheet">
         <xd:desc>
-            <xd:p>This stylesheet produces a number of statistics such as word counts, character counts etc. Input are TEI XML files. Output are CSV files.</xd:p>
+            <xd:p>This stylesheet converts biblStruct nodes to rows of a CSV file. It also adds some information from authority files.</xd:p>
         </xd:desc>
     </xd:doc>
     <!-- select preference for output language -->
-    <xsl:param name="p_output-language" select="'ar-Latn-x-ijmes'"/>
+    <xsl:param name="p_output-language" select="'ar'"/>
     <!-- locate authority files -->
     <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
     <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
