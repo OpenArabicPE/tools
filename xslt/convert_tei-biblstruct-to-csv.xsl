@@ -91,6 +91,7 @@
             <xsl:text>"article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.id.oclc</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -121,6 +122,9 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication title -->
                 <xsl:value-of select="tei:monogr/tei:title[@level=('m','j')][1]"/>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- publication ID: OCLC -->
+                <xsl:value-of select="tei:monogr/tei:idno[@type='oclc'][1]"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/>
