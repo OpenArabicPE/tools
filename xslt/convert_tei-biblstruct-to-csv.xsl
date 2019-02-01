@@ -17,7 +17,8 @@
     <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
     <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
     <xsl:param name="p_file-name-personography" select="'personography_OpenArabicPE.TEIP5.xml'"/>
-    
+    <!-- toggle debugging messages -->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- import functions -->
     <xsl:import href="../../tools/xslt/openarabicpe_functions.xsl"/>
     
@@ -28,7 +29,7 @@
         select="doc(concat($p_path-authority-files, $p_file-name-personography))"/>
     <!-- variables for CSV output -->
     <xsl:variable name="v_new-line" select="'&quot;&#x0A;'"/>
-    <xsl:variable name="v_seperator" select="'&quot;;&quot;'"/>
+    <xsl:variable name="v_seperator" select="'&quot;,&quot;'"/>
     <xsl:variable name="v_id-file" select="if(tei:TEI/@xml:id) then(tei:TEI/@xml:id) else(substring-before(tokenize(base-uri(),'/')[last()],'.TEIP5'))"/>
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
@@ -91,7 +92,6 @@
             <xsl:text>"article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.id.oclc</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -123,9 +123,6 @@
                 <!-- publication title -->
                 <xsl:value-of select="tei:monogr/tei:title[@level=('m','j')][1]"/>
                 <xsl:value-of select="$v_seperator"/>
-                <!-- publication ID: OCLC -->
-                <xsl:value-of select="tei:monogr/tei:idno[@type='oclc'][1]"/>
-                <xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/>
                 <xsl:value-of select="$v_seperator"/>
@@ -148,10 +145,10 @@
                 <!-- has author? -->
                 <xsl:choose>
                     <xsl:when test="tei:analytic/tei:author">
-                        <xsl:text>y</xsl:text>
+                        <xsl:text>T</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>n</xsl:text>
+                        <xsl:text>F</xsl:text>
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:value-of select="$v_seperator"/>
