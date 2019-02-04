@@ -13,7 +13,7 @@
         <!-- $p_gazetteer expects a path to a file -->
         <xsl:param name="gazetteer"/>
         <!-- values for $p_mode are 'location', 'name', 'type' -->
-        <xsl:param name="mode"/>
+        <xsl:param name="output-mode"/>
         <!-- select a target language for toponyms -->
         <xsl:param name="output-language"/>
         <xsl:choose>
@@ -26,11 +26,11 @@
                     select="$gazetteer/descendant::tei:place[tei:idno[@type = 'geon'] = $v_geonames-id][1]"/>
                 <xsl:choose>
                     <!-- return location -->
-                    <xsl:when test="$mode = 'location'">
+                    <xsl:when test="$output-mode = 'location'">
                         <xsl:value-of select="$v_place/tei:location/tei:geo"/>
                     </xsl:when>
                     <!-- return toponym in selected language -->
-                    <xsl:when test="$mode = 'name'">
+                    <xsl:when test="$output-mode = 'name'">
                         <xsl:choose>
                             <xsl:when test="$v_place/tei:placeName[@xml:lang = $output-language]">
                                 <xsl:value-of
@@ -49,13 +49,13 @@
                         </xsl:choose>
                     </xsl:when>
                     <!-- return type -->
-                    <xsl:when test="$mode = 'type'">
+                    <xsl:when test="$output-mode = 'type'">
                         <xsl:value-of select="$v_place/@type"/>
                     </xsl:when>
                 </xsl:choose>
             </xsl:when>
             <!-- return original input toponym if nothing else is fond -->
-            <xsl:when test="$mode = 'name'">
+            <xsl:when test="$output-mode = 'name'">
                 <xsl:value-of select="normalize-space($placeName)"/>
             </xsl:when>
             <!-- otherwise: no location data -->
@@ -69,12 +69,16 @@
     <xsl:function name="oape:query-personography">
         <xsl:param name="persName"/>
         <xsl:param name="personography"/>
-        <!-- values are 'birth', 'death', 'name', 'wiki', 'countWorks' -->
-        <xsl:param name="mode"/>
+        <!-- values are 'birth', 'death', 'name', 'wiki', 'viaf', 'oape', 'countWorks' -->
+        <xsl:param name="output-mode"/>
         <xsl:param name="output-language"/>
         <!-- establish IDs -->
-        <xsl:variable name="v_viaf-id" select="replace($persName/@ref,'.*viaf:(\d+).*','$1')"/>
-        <xsl:variable name="v_oape-id" select="replace($persName/@ref,'.*oape:pers:(\d+).*','$1')"/>
+        <xsl:variable name="v_viaf-id" select="if(matches($persName/@ref,'viaf:\d+')) then(replace($persName/@ref,'^.*viaf:(\d+).*$','$1')) else()"/>
+        <xsl:variable name="v_oape-id" select="if(matches($persName/@ref,'oape:pers:\d+')) then(replace($persName/@ref,'^.*oape:pers:(\d+).*$','$1')) else()"/>
+        <!--<xsl:message>
+            <xsl:text>VIAF ID: </xsl:text><xsl:value-of select="$v_viaf-id"/>
+            <xsl:text>, OpenArabicPE ID: </xsl:text><xsl:value-of select="$v_oape-id"/>
+        </xsl:message>-->
         <!-- load data from authority file -->
         <xsl:variable name="v_person">
             <xsl:choose>
@@ -90,33 +94,42 @@
             <!-- test for @ref pointing to VIAF -->
             <xsl:when test="$v_person!=''">
                 <xsl:choose>
-                    <xsl:when test="$mode = 'birth'">
+                    <xsl:when test="$output-mode = 'birth'">
                         <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:birth/@when"/>
                     </xsl:when>
-                    <xsl:when test="$mode = 'death'">
+                    <xsl:when test="$output-mode = 'death'">
                         <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:death/@when"/>
                     </xsl:when>
-                    <xsl:when test="$mode = 'name'">
+                    <xsl:when test="$output-mode = 'name'">
                         <xsl:choose>
                             <!-- preference for names without titles etc. -->
-                            <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(tei:addName)][@xml:lang = $output-language]">
-                                <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:persName[not(tei:addName)][@xml:lang = $output-language][1]"/>
+                            <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][not(tei:addName)][@xml:lang = $output-language]">
+                                <xsl:apply-templates select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][not(tei:addName)][@xml:lang = $output-language][1]" mode="m_plain-text"/>
                             </xsl:when>
                             <!-- fallback to first full name in selected output language-->
                             <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language]">
-                                <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language][1]"/>
+                                <xsl:apply-templates select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language][1]"/>
                             </xsl:when>
                             <!-- fallback to first full name in English -->
                             <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = 'en']">
-                                <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = 'en'][1]"/>
+                                <xsl:apply-templates select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = 'en'][1]"/>
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="normalize-space($v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][1])"/>
+                                <xsl:apply-templates select="normalize-space($v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][1])"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:when>
+                     <xsl:when test="$output-mode = 'viaf'">
+                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='viaf']"/>
+                    </xsl:when>
+                    <xsl:when test="$output-mode = 'oape'">
+                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='oape']"/>
+                    </xsl:when>
                     <!-- return number of works in viaf -->
-                    <xsl:when test="$mode = 'countWorks' and $v_viaf-id!=''">
+                    <xsl:when test="$output-mode = 'countWorks' and $v_viaf-id!=''">
+                        <!--<xsl:message>
+                            <xsl:text>Query VIAF for number of works of </xsl:text><xsl:value-of select="$v_viaf-id"/>
+                        </xsl:message>-->
                         <xsl:variable name="v_person-viaf">
                     <xsl:call-template name="t_query-viaf-sru">
                         <xsl:with-param name="p_input-type" select="'id'"/>
@@ -130,7 +143,7 @@
                 </xsl:choose>
             </xsl:when>
             <!-- return original input name if nothing else is fond -->
-            <xsl:when test="$mode = 'name'">
+            <xsl:when test="$output-mode = 'name'">
                 <xsl:value-of select="normalize-space($persName)"/>
             </xsl:when>
             <!-- otherwise: no data -->
@@ -141,4 +154,11 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
+    
+    <xsl:template match="tei:persName" mode="m_plain-text">
+        <xsl:for-each select="descendant::text()">
+            <xsl:value-of select="normalize-space()"/>
+            <xsl:text> </xsl:text>
+        </xsl:for-each>
+    </xsl:template>
 </xsl:stylesheet>
