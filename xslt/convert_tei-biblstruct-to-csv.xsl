@@ -35,63 +35,13 @@
         <xsl:apply-templates select="descendant::tei:text"/>
     </xsl:template>
     <xsl:template match="tei:text">
-        <!-- variables -->
-        <!-- select the first edition as source -->
-        <xsl:variable name="v_bibl-source"
-            select="ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct[1]"/>
-        <xsl:variable name="v_title-publication"
-            select="$v_bibl-source/tei:monogr/title[@xml:lang = 'ar-Latn-x-ijmes'][not(@type = 'sub')][1]"/>
-        <xsl:variable name="v_date"
-            select="$v_bibl-source/tei:monogr/tei:imprint/tei:date[@when][1]/@when"/>
-        <xsl:variable name="v_volume">
-            <xsl:choose>
-                <!-- check for correct encoding of volume information -->
-                <xsl:when
-                    test="$v_bibl-source//tei:biblScope[@unit = 'volume']/@from = $v_bibl-source//tei:biblScope[@unit = 'volume']/@to">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'volume']/@from"/>
-                </xsl:when>
-                <!-- check for ranges -->
-                <xsl:when
-                    test="$v_bibl-source//tei:biblScope[@unit = 'volume']/@from != $v_bibl-source//tei:biblScope[@unit = 'volume']/@to">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'volume']/@from"/>
-                    <!-- probably an en-dash is the better option here -->
-                    <xsl:text>/</xsl:text>
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'volume']/@to"/>
-                </xsl:when>
-                <!-- fallback: erroneous encoding of volume information with @n -->
-                <xsl:when test="$v_bibl-source//tei:biblScope[@unit = 'volume']/@n">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'volume']/@n"/>
-                </xsl:when>
-            </xsl:choose>
-        </xsl:variable>
-        <xsl:variable name="v_issue">
-            <xsl:choose>
-                <!-- check for correct encoding of issue information -->
-                <xsl:when
-                    test="$v_bibl-source//tei:biblScope[@unit = 'issue']/@from = $v_bibl-source//tei:biblScope[@unit = 'issue']/@to">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'issue']/@from"/>
-                </xsl:when>
-                <!-- check for ranges -->
-                <xsl:when
-                    test="$v_bibl-source//tei:biblScope[@unit = 'issue']/@from != $v_bibl-source//tei:biblScope[@unit = 'issue']/@to">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'issue']/@from"/>
-                    <!-- probably an en-dash is the better option here -->
-                    <xsl:text>/</xsl:text>
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'issue']/@to"/>
-                </xsl:when>
-                <!-- fallback: erroneous encoding of issue information with @n -->
-                <xsl:when test="$v_bibl-source//tei:biblScope[@unit = 'issue']/@n">
-                    <xsl:value-of select="$v_bibl-source//tei:biblScope[@unit = 'issue']/@n"/>
-                </xsl:when>
-            </xsl:choose>
-        </xsl:variable>
-        <xsl:variable name="v_publication-place" select="$v_bibl-source/tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1]"/>
          <!-- stats per biblStruct-->
         <xsl:result-document format="text" href="../metadata/{$v_id-file}-bibl.csv">
             <!-- csv head -->
             <xsl:text>"article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.id.sakhrit</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -123,6 +73,9 @@
                 <!-- publication title -->
                 <xsl:value-of select="tei:monogr/tei:title[@level=('m','j')][1]"/>
                 <xsl:value-of select="$v_seperator"/>
+                <!-- publication ID: sakhrit -->
+                <xsl:value-of select="tei:monogr/tei:idno[@type='jid']"/>
+                <xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/>
                 <xsl:value-of select="$v_seperator"/>
@@ -134,10 +87,14 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
 <!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-name"/>-->
-                <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'name',$p_output-language)"/>
+                <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
+                    <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'name',$p_output-language)"/>
+                </xsl:if>
                 <xsl:value-of select="$v_seperator"/>
 <!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-coordinates"/>-->
-                <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'location','')"/>
+                <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
+                    <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'location','')"/>
+                </xsl:if>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- article title -->
                 <xsl:value-of select="tei:analytic/tei:title[@level='a']"/>
@@ -169,16 +126,19 @@
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- author id: VIAF -->
-                <xsl:for-each select="tei:analytic/tei:author/tei:persName[matches(@ref,'viaf:')]">
-                    <xsl:value-of select="replace(@ref,'.*(viaf:\d+).*','$1')"/>
+                <xsl:for-each select="tei:analytic/tei:author/tei:persName">
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'viaf','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- author id: OpenArabicPE (local authority file) -->
-                <xsl:for-each select="tei:analytic/tei:author/tei:persName[matches(@ref,'oape:pers:')]">
-                    <xsl:value-of select="replace(@ref,'.*(oape:pers:\d+).*','$1')"/>
+                <xsl:for-each select="tei:analytic/tei:author/tei:persName">
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'oape','')"/>
+                    <xsl:if test="position() != last()">
+                        <xsl:text>|</xsl:text>
+                    </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- birth -->
@@ -205,129 +165,6 @@
                     </xsl:if>
                 </xsl:for-each>
                 <!-- end of line -->
-                <xsl:value-of select="$v_new-line"/>
-            </xsl:for-each>
-        </xsl:result-document>
-        <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-referenced-works.csv">
-            <!-- csv head -->
-            <xsl:text>bibl.id</xsl:text><xsl:value-of select="$v_seperator"/>
-            <!-- information of journal issue -->
-            <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
-            <!-- information on article -->
-            <xsl:text>bibl.text</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.title.m.or.j</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.date</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.volume</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.issue</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.title.a</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.author.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.editor.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>bibl.publisher</xsl:text>
-            <!-- end of head -->
-            <xsl:value-of select="$v_new-line"/>
-            <!-- one line for each referced work: <bibl>, <title> -->
-            <xsl:for-each select="tei:body/descendant::tei:bibl | tei:body/descendant::tei:biblStruct | tei:title[not(ancestor::tei:bibl | ancestor::tei:biblStruct)]">
-                <!-- preprocess -->
-                <xsl:variable name="v_plain-text">
-                    <xsl:apply-templates select="." mode="m_plain-text"/>
-                </xsl:variable>
-                <!--  ID of referenced work -->
-                <xsl:value-of select="concat($v_id-file, '-', @xml:id)"/>
-                <!-- information on the source -->
-                <xsl:value-of select="$v_seperator"/>
-                <!-- publication title -->
-                <xsl:value-of select="$v_title-publication"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- date -->
-                <xsl:value-of select="$v_date"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- volume -->
-                <xsl:value-of select="$v_volume"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- issue -->
-                <xsl:value-of select="$v_issue"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- publication place -->
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-name"/>-->
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language)"/>
-                <xsl:value-of select="$v_seperator"/>
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-coordinates"/>-->
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'location','')"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- information on the referenced work -->
-                <xsl:value-of select="normalize-space($v_plain-text)"/><xsl:value-of select="$v_seperator"/>
-                <!-- publication title -->
-                <xsl:value-of select="descendant-or-self::tei:title[@level = ('m','j')]"/><xsl:value-of select="$v_seperator"/>
-                <!-- publication date -->
-                <xsl:value-of select="descendant::tei:date[@when][1]/@when"/><xsl:value-of select="$v_seperator"/>
-                <!-- volume -->
-                <xsl:value-of select="descendant::tei:biblScope[@unit='volume']/@from"/><xsl:value-of select="$v_seperator"/>
-                <!-- issue -->
-                 <xsl:value-of select="descendant::tei:biblScope[@unit='issue']/@from"/><xsl:value-of select="$v_seperator"/>
-                <!-- article title -->
-                <xsl:value-of select="descendant-or-self::tei:title[@level = 'a']"/><xsl:value-of select="$v_seperator"/>
-                <!-- authors -->
-                <xsl:for-each select="descendant::tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
-                    <xsl:if test="position() != last()">
-                        <xsl:text>|</xsl:text>
-                    </xsl:if>
-                </xsl:for-each>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- editors names -->
-                <xsl:for-each select="descendant::tei:editor/child::node()[not(matches(.,'\s+'))]">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
-                    <xsl:if test="position() != last()">
-                        <xsl:text>|</xsl:text>
-                    </xsl:if>
-                </xsl:for-each>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- pubPlace -->
-                <xsl:if test="descendant::tei:pubPlace/tei:placeName">
-                    <xsl:choose>
-                    <xsl:when test="count(descendant::tei:pubPlace/tei:placeName) &gt; 1">
-                        <xsl:for-each select="descendant::tei:pubPlace/tei:placeName">
-                            <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'name',$p_output-language)"/>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'name',$p_output-language)"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                </xsl:if>
-                <xsl:value-of select="$v_seperator"/>
-                <xsl:if test="descendant::tei:pubPlace/tei:placeName">
-                    <xsl:choose>
-                    <xsl:when test="count(descendant::tei:pubPlace/tei:placeName) &gt; 1">
-                        <xsl:for-each select="descendant::tei:pubPlace/tei:placeName">
-                            <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'location','')"/>
-                            </xsl:if>
-                        </xsl:for-each>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'location','')"/>
-                    </xsl:otherwise>
-                </xsl:choose>
-                </xsl:if>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- publisher -->
-                <xsl:for-each select="descendant::tei:publisher/child::node()[not(matches(.,'\s+'))]">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
-                    <xsl:if test="position() != last()">
-                        <xsl:text>|</xsl:text>
-                    </xsl:if>
-                </xsl:for-each>
-                <!-- end of entry -->
                 <xsl:value-of select="$v_new-line"/>
             </xsl:for-each>
         </xsl:result-document>
