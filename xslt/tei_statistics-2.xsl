@@ -241,7 +241,6 @@
                     </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
-                <xsl:value-of select="$v_seperator"/>
                 <!-- author id: VIAF -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
                     <xsl:value-of select="oape:query-personography(.,$v_personography,'viaf','')"/>
@@ -256,11 +255,6 @@
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
-                </xsl:for-each>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- author id: OpenArabicPE (local authority file) -->
-                <xsl:for-each select="tei:byline/descendant::tei:persName">
-                    <xsl:value-of select="replace(@ref,'.*(oape:pers:\d+).*','$1')"/>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- birth -->
