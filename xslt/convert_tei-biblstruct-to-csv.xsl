@@ -64,8 +64,12 @@
             <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>page.count</xsl:text>-->
             <xsl:value-of select="$v_new-line"/>
-            <!-- one line for each article -->
-            <xsl:for-each select="tei:body/descendant::tei:biblStruct">
+            <!-- one line for each article/ biblStruct -->
+            <xsl:apply-templates select="tei:body/descendant::tei:biblStruct" mode="m_tei-to-csv"/>
+        </xsl:result-document>
+    </xsl:template>
+    
+    <xsl:template match="tei:biblStruct" mode="m_tei-to-csv">
                 <xsl:text>"</xsl:text>
                 <!-- article ID -->
                 <xsl:value-of select="if(@xml:id) then(concat($v_id-file, '-', @xml:id)) else(@corresp)"/>
@@ -86,12 +90,10 @@
                 <xsl:value-of select="tei:monogr/tei:biblScope[@unit='issue']/@from"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-name"/>-->
                 <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
                     <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'name',$p_output-language)"/>
                 </xsl:if>
                 <xsl:value-of select="$v_seperator"/>
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-coordinates"/>-->
                 <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
                     <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'location','')"/>
                 </xsl:if>
@@ -166,9 +168,7 @@
                 </xsl:for-each>
                 <!-- end of line -->
                 <xsl:value-of select="$v_new-line"/>
-            </xsl:for-each>
-        </xsl:result-document>
-    </xsl:template>
+            </xsl:template>
     
     <!-- count words -->
     <xsl:template name="t_count-words">
