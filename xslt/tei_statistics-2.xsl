@@ -17,7 +17,8 @@
     <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
     <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
     <xsl:param name="p_file-name-personography" select="'personography_OpenArabicPE.TEIP5.xml'"/>
-    
+    <!-- toggle debugging messages -->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- import functions -->
     <xsl:import href="../../tools/xslt/openarabicpe_functions.xsl"/>
     
@@ -27,8 +28,8 @@
     <xsl:variable name="v_personography"
         select="doc(concat($p_path-authority-files, $p_file-name-personography))"/>
     <!-- variables for CSV output -->
-    <xsl:variable name="v_new-line" select="'&#x0A;'"/>
-    <xsl:variable name="v_seperator" select="';'"/>
+    <xsl:variable name="v_new-line" select="'&quot;&#x0A;'"/>
+    <xsl:variable name="v_seperator" select="'&quot;,&quot;'"/>
     <xsl:variable name="v_id-file" select="if(tei:TEI/@xml:id) then(tei:TEI/@xml:id) else(substring-before(tokenize(base-uri(),'/')[last()],'.TEIP5'))"/>
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
@@ -92,6 +93,7 @@
                 <xsl:apply-templates mode="m_plain-text"/>
             </xsl:variable>
             <!-- csv head -->
+            <xsl:text>"</xsl:text>
             <xsl:text>publication.title</xsl:text>
             <xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text>
@@ -111,6 +113,7 @@
                 <xsl:variable name="v_page" select="substring-before(., '$')"/>
                 <xsl:variable name="v_text" select="substring-after(., '$')"/>
                 <xsl:if test="$v_page != ''">
+                    <xsl:text>"</xsl:text>
                     <!-- title -->
                     <xsl:value-of select="$v_title-publication"/>
                     <xsl:value-of select="$v_seperator"/>
@@ -143,9 +146,11 @@
         <!-- stats per article -->
         <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-articles.csv">
             <!-- csv head -->
+            <xsl:text>"</xsl:text>
             <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
+            <!-- add OCLC ID -->
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -155,6 +160,7 @@
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.name</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.name.normalized</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.id.viaf</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -168,12 +174,14 @@
             <xsl:text>page.count</xsl:text>
             <xsl:value-of select="$v_new-line"/>
             <!-- one line for each article -->
+            <!-- problem: this for-each does not catch all articles -->
             <xsl:for-each select="tei:body/descendant::tei:div[@type = 'article'][not(ancestor::tei:div[@type = 'bill'])]">
                 <!-- preprocess -->
                 <xsl:variable name="v_plain-text">
                     <xsl:apply-templates mode="m_plain-text"/>
                 </xsl:variable>
                 <!-- article ID -->
+                <xsl:text>"</xsl:text>
                 <xsl:value-of select="concat($v_id-file, '-', @xml:id)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication title -->
@@ -189,10 +197,8 @@
                 <xsl:value-of select="$v_issue"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-name"/>-->
                 <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language)"/>
                 <xsl:value-of select="$v_seperator"/>
-<!--                <xsl:apply-templates select="$v_publication-place" mode="m_location-coordinates"/>-->
                 <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'location','')"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- article title -->
@@ -212,14 +218,22 @@
                 <!-- has author? -->
                 <xsl:choose>
                     <xsl:when test="tei:byline[descendant::tei:persName]">
-                        <xsl:text>y</xsl:text>
+                        <xsl:text>T</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>n</xsl:text>
+                        <xsl:text>F</xsl:text>
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- author names -->
+                <xsl:for-each select="tei:byline/descendant::tei:persName">
+                    <xsl:apply-templates select="." mode="m_plain-text"/>
+                    <xsl:if test="position() != last()">
+                        <xsl:text>|</xsl:text>
+                    </xsl:if>
+                </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- normalized -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
                     <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
                     <xsl:if test="position() != last()">
@@ -227,9 +241,18 @@
                     </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
+                <xsl:value-of select="$v_seperator"/>
                 <!-- author id: VIAF -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
-                    <xsl:value-of select="replace(@ref,'.*(viaf:\d+).*','$1')"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'viaf','')"/>
+                    <xsl:if test="position() != last()">
+                        <xsl:text>|</xsl:text>
+                    </xsl:if>
+                </xsl:for-each>
+                <xsl:value-of select="$v_seperator"/>
+                <!-- author id: OpenArabicPE (local authority file) -->
+                <xsl:for-each select="tei:byline/descendant::tei:persName">
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'oape','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -267,10 +290,10 @@
                 <!-- is independent or part of a section? -->
                 <xsl:choose>
                     <xsl:when test="ancestor::tei:div[@type = 'section']">
-                        <xsl:text>n</xsl:text>
+                        <xsl:text>F</xsl:text>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:text>y</xsl:text>
+                        <xsl:text>T</xsl:text>
                     </xsl:otherwise>
                 </xsl:choose>
                 <xsl:value-of select="$v_seperator"/>
@@ -341,6 +364,7 @@
         </xsl:result-document>
         <xsl:result-document format="text" href="../_output/statistics/{$v_id-file}-stats_tei-referenced-works.csv">
             <!-- csv head -->
+            <xsl:text>"</xsl:text>
             <xsl:text>bibl.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -370,6 +394,7 @@
                     <xsl:apply-templates select="." mode="m_plain-text"/>
                 </xsl:variable>
                 <!--  ID of referenced work -->
+                <xsl:text>"</xsl:text>
                 <xsl:value-of select="concat($v_id-file, '-', @xml:id)"/>
                 <!-- information on the source -->
                 <xsl:value-of select="$v_seperator"/>
