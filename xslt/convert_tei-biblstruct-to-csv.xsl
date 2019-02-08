@@ -82,7 +82,7 @@
                 <xsl:value-of select="tei:monogr/tei:idno[@type='jid']"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication ID: OCLC -->
-                <xsl:value-of select="tei:monogr/tei:idno[@type='oclc']"/>
+                <xsl:value-of select="tei:monogr/tei:idno[@type='OCLC']"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- date -->
                 <xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/>
