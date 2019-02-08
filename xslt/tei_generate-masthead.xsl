@@ -166,7 +166,7 @@
                     <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication. This should be automatically toggled, for instance on the basis of the oclc number -->
                     <xsl:choose>
                         <!-- al-Ḥaqāʾiq -->
-                        <xsl:when test="$v_biblSource//tei:idno[@type='oclc'] = '644997575'">
+                        <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '644997575'">
                             <!-- here follows the date line -->
                             <lb/>
                             <xsl:apply-templates select="$v_biblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
@@ -175,7 +175,7 @@
                             <!--<xsl:text>و</xsl:text><xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/><xsl:text>و</xsl:text><xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_gregorian']" mode="mBibl"/>-->
                         </xsl:when>
                         <!-- al-Muqtabas -->
-                        <xsl:when test="$v_biblSource//tei:idno[@type='oclc'] = '4770057679' and $v_biblSource//tei:biblScope[@unit='volume']/@from &lt; 6">
+                        <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '4770057679' and $v_biblSource//tei:biblScope[@unit='volume']/@from &lt; 6">
                             <!-- here follows the date line -->
                             <lb/>
                             <xsl:apply-templates mode="mBibl" select="$v_biblSource//tei:date[@calendar='#cal_islamic']"/>

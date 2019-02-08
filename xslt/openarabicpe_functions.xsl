@@ -120,7 +120,7 @@
                         </xsl:choose>
                     </xsl:when>
                      <xsl:when test="$output-mode = 'viaf'">
-                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='viaf']"/>
+                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='VIAF']"/>
                     </xsl:when>
                     <xsl:when test="$output-mode = 'oape'">
                         <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='oape']"/>

@@ -37,7 +37,7 @@
             select="tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct[1]"/>
         <xsl:variable name="v_title-publication"
             select="$v_bibl-source/tei:monogr/title[@xml:lang = 'ar-Latn-x-ijmes'][not(@type = 'sub')][1]"/>
-        <xsl:variable name="v_id-publication" select="$v_bibl-source/descendant::tei:idno[@type='oclc'][1]"/>
+        <xsl:variable name="v_id-publication" select="$v_bibl-source/descendant::tei:idno[@type='OCLC'][1]"/>
         <xsl:variable name="v_date"
             select="$v_bibl-source/tei:monogr/tei:imprint/tei:date[@when][1]/@when"/>
         <xsl:variable name="v_volume">

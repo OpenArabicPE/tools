@@ -35,7 +35,7 @@
                     <xsl:sort select="current-group()[1]/descendant::name[1]"/>
                     <!-- VIAF ID of authors: if present this is the current-grouping-key(). this can be used for querying $p_file-entities-master for additional information -->
                     <xsl:variable name="v_id-viaf" select="substring-after(current-grouping-key(),'https://viaf.org/viaf/')"/>
-                    <xsl:variable name="v_person-author"  select="$p_file-entities-master//tei:person[tei:idno[@type='viaf']=$v_id-viaf]"/>
+                    <xsl:variable name="v_person-author"  select="$p_file-entities-master//tei:person[tei:idno[@type='VIAF']=$v_id-viaf]"/>
                     
                     <!-- generate author names -->
                     <xsl:variable name="v_author">

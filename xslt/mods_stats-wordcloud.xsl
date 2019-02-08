@@ -63,12 +63,12 @@
             <xsl:variable name="v_name" select="oap:item[oap:key='name']/oap:value"/>
             <xsl:variable name="v_date-birth">
                 <xsl:if test="$v_id-viaf!=''">
-                    <xsl:value-of select="$p_master-entities//tei:person[tei:idno[@type='viaf']=$v_id-viaf]/tei:birth/@when"/>
+                    <xsl:value-of select="$p_master-entities//tei:person[tei:idno[@type='VIAF']=$v_id-viaf]/tei:birth/@when"/>
                 </xsl:if>
             </xsl:variable>
             <xsl:variable name="v_date-death">
                 <xsl:if test="$v_id-viaf!=''">
-                    <xsl:value-of select="$p_master-entities//tei:person[tei:idno[@type='viaf']=$v_id-viaf]/tei:death/@when"/>
+                    <xsl:value-of select="$p_master-entities//tei:person[tei:idno[@type='VIAF']=$v_id-viaf]/tei:death/@when"/>
                 </xsl:if>
             </xsl:variable>
             <!-- query viaf for titles -->
