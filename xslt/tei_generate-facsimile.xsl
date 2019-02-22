@@ -28,8 +28,8 @@
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <!-- params to toggle certain links -->
-    <xsl:param name="p_file-local" select="true()"/>
-    <xsl:param name="p_file-hathi" select="true()"/>
+    <xsl:param name="p_file-local" select="false()"/>
+    <xsl:param name="p_file-hathi" select="false()"/>
     <xsl:param name="p_file-eap" select="true()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
     
@@ -38,7 +38,7 @@
     <!-- ID / date of issue in EAP: these are formatted as yyyymm and need to be set for each issue. the volumes commence with yyyy02 -->
 <!--    <xsl:param name="pEapIssueId" select="'191202'"/>-->
     <!-- set-off between HathiTrust image numbers and the printed edition; default is 0 -->
-    <xsl:param name="p_image-setoff_hathi" select="12" as="xs:integer"/>
+    <xsl:param name="p_image-setoff_hathi" select="28" as="xs:integer"/>
     <!-- set-off between EAP image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
@@ -59,7 +59,7 @@
         </xsl:choose>
     </xsl:variable>
     <!-- volume in HathTrust collection: needs to be set -->
-    <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/>
+    <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
     <!-- volume in EAP collection: needs to be set  -->
     <xsl:variable name="v_publication_eap" select="4" as="xs:integer"/>
     <xsl:param name="p_volume-setoff_eap" select="-1" as="xs:integer"/>
