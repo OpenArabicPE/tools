@@ -32,9 +32,30 @@
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
-                <xsl:text>Corrected </xsl:text><tei:gi>biblStruct</tei:gi><xsl:text> by moving all </xsl:text><tei:gi>biblScope</tei:gi><xsl:text> from </xsl:text><tei:gi>imprint</tei:gi><xsl:text> to </xsl:text><tei:gi>monogr</tei:gi><xsl:text> and by converting all </xsl:text><tei:att>n</tei:att><xsl:text> to </xsl:text><tei:att>from</tei:att><xsl:text> and </xsl:text><tei:att>to</tei:att><xsl:text>with identical values.</xsl:text>
+                <xsl:attribute name="xml:lang" select="'en'"/>
+                <xsl:text>Corrected </xsl:text><tei:gi>biblStruct</tei:gi><xsl:text> by sorting child elements in the correct order.  Converted all </xsl:text><tei:att>n</tei:att><xsl:text> on </xsl:text><tei:gi>biblScope</tei:gi><xsl:text> to </xsl:text><tei:att>from</tei:att><xsl:text> and </xsl:text><tei:att>to</tei:att><xsl:text>with identical values.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="@* | node()"/>
+        </xsl:copy>
+    </xsl:template>
+    
+    <!--<xsl:template match="tei:biblStruct">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="tei:analytic"/>
+            <xsl:apply-templates select="tei:monogr"/>
+        </xsl:copy>
+    </xsl:template>-->
+    <!-- sort the content of monogr -->
+    <xsl:template match="tei:monogr">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:apply-templates select="tei:title"/>
+            <xsl:apply-templates select="tei:idno"/>
+            <xsl:apply-templates select="tei:author"/>
+            <xsl:apply-templates select="tei:editor"/>
+            <xsl:apply-templates select="tei:imprint"/>
+            <xsl:apply-templates select="tei:biblScope"/>
         </xsl:copy>
     </xsl:template>
     
