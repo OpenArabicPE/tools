@@ -182,6 +182,18 @@
                             <xsl:text> موافق </xsl:text>
                             <xsl:copy-of select="oape:date-format-iso-string-to-tei($v_biblSource//tei:date[@when][1]/@when,'#cal_julian', true(), false(), 'ar')"/>
                         </xsl:when>
+                        <xsl:otherwise>
+                            <!-- newspapers -->
+                            <lb/>
+                            <xsl:apply-templates mode="m_copy" select="$v_biblSource//tei:title[@level='j'][@xml:lang='ar'][@type='sub']"/>
+                            <!-- here follows the date line -->
+                            <lb/>
+                            <xsl:apply-templates select="$v_biblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
+                            <xsl:text> في </xsl:text>
+                            <xsl:apply-templates mode="mBibl" select="$v_biblSource//tei:date[@calendar='#cal_islamic']"/>
+                             <xsl:text> الموافق </xsl:text>
+                            <xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/><xsl:text> و</xsl:text><xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_gregorian']" mode="mBibl"/>
+                        </xsl:otherwise>
                     </xsl:choose>
                 </xsl:element>
             </xsl:element>
