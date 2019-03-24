@@ -12,45 +12,59 @@
         <xsl:param name="placeName"/>
         <!-- $p_gazetteer expects a path to a file -->
         <xsl:param name="gazetteer"/>
-        <!-- values for $p_mode are 'location', 'name', 'type' -->
+        <!-- values for $p_mode are 'location', 'name', 'type', 'oape' -->
         <xsl:param name="output-mode"/>
         <!-- select a target language for toponyms -->
         <xsl:param name="output-language"/>
+        <!-- establish IDs -->
+        <xsl:variable name="v_geon-id" select="if(matches($placeName/@ref,'geon:\d+')) then(replace($placeName/@ref,'^.*geon:(\d+).*$','$1')) else()"/>
+        <xsl:variable name="v_oape-id" select="if(matches($placeName/@ref,'oape:place:\d+')) then(replace($placeName/@ref,'^.*oape:place:(\d+).*$','$1')) else()"/>
+        <!-- load data from authority file -->
+        <xsl:variable name="v_place">
+            <xsl:choose>
+                <xsl:when test="$v_oape-id!=''">
+                    <xsl:copy-of select="$gazetteer/descendant::tei:place[tei:idno[@type = 'oape'] = $v_oape-id][1]"/>
+                </xsl:when>
+                <xsl:when test="$v_geon-id!=''">
+                    <xsl:copy-of select="$gazetteer/descendant::tei:place[tei:idno[@type = 'geon'] = $v_geon-id][1]"/>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
+        
         <xsl:choose>
-            <!-- test for @ref pointing to GeoNames -->
-            <xsl:when test="starts-with($placeName/@ref, 'geon:')">
-                <xsl:variable name="v_geonames-id"
-                    select="replace($placeName/@ref, 'geon:(\d+)', '$1')"/>
-                <!-- select entry from the gazetteer with the same geonames ID -->
-                <xsl:variable name="v_place"
-                    select="$gazetteer/descendant::tei:place[tei:idno[@type = 'geon'] = $v_geonames-id][1]"/>
+            <!-- test for @ref pointing to auhority files -->
+            <xsl:when test="$placeName/@ref">
                 <xsl:choose>
                     <!-- return location -->
                     <xsl:when test="$output-mode = 'location'">
-                        <xsl:value-of select="$v_place/tei:location/tei:geo"/>
+                        <xsl:value-of select="$v_place/descendant-or-self::tei:place/tei:location/tei:geo"/>
+                    </xsl:when>
+                    <!-- return location -->
+                     <xsl:when test="$output-mode = 'oape'">
+                        <xsl:value-of select="$v_place/descendant-or-self::tei:place/tei:idno[@type='oape']"/>
                     </xsl:when>
                     <!-- return toponym in selected language -->
                     <xsl:when test="$output-mode = 'name'">
                         <xsl:choose>
-                            <xsl:when test="$v_place/tei:placeName[@xml:lang = $output-language]">
+                            <xsl:when test="$v_place/descendant-or-self::tei:place/tei:placeName[@xml:lang = $output-language]">
                                 <xsl:value-of
-                                    select="normalize-space($v_place/tei:placeName[@xml:lang = $output-language][1])"
+                                    select="normalize-space($v_place/descendant-or-self::tei:place/tei:placeName[@xml:lang = $output-language][1])"
                                 />
                             </xsl:when>
                             <!-- fallback to english -->
-                            <xsl:when test="$v_place/tei:placeName[@xml:lang = 'en']">
+                            <xsl:when test="$v_place/descendant-or-self::tei:place/tei:placeName[@xml:lang = 'en']">
                                 <xsl:value-of
-                                    select="normalize-space($v_place/tei:placeName[@xml:lang = 'en'][1])"
+                                    select="normalize-space($v_place/descendant-or-self::tei:place/tei:placeName[@xml:lang = 'en'][1])"
                                 />
                             </xsl:when>
                             <xsl:otherwise>
-                                <xsl:value-of select="normalize-space($v_place/tei:placeName[1])"/>
+                                <xsl:value-of select="normalize-space($v_place/descendant-or-self::tei:place/tei:placeName[1])"/>
                             </xsl:otherwise>
                         </xsl:choose>
                     </xsl:when>
                     <!-- return type -->
                     <xsl:when test="$output-mode = 'type'">
-                        <xsl:value-of select="$v_place/@type"/>
+                        <xsl:value-of select="$v_place/descendant-or-self::tei:place/@type"/>
                     </xsl:when>
                 </xsl:choose>
             </xsl:when>
