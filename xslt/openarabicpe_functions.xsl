@@ -41,7 +41,7 @@
                     </xsl:when>
                     <!-- return location -->
                      <xsl:when test="$output-mode = 'oape'">
-                        <xsl:value-of select="$v_place/descendant-or-self::tei:place/tei:idno[@type='oape']"/>
+                        <xsl:value-of select="$v_place/descendant-or-self::tei:place/tei:idno[@type='oape'][1]"/>
                     </xsl:when>
                     <!-- return toponym in selected language -->
                     <xsl:when test="$output-mode = 'name'">
@@ -118,7 +118,7 @@
                         <xsl:choose>
                             <!-- preference for names without titles etc. -->
                             <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][not(tei:addName)][@xml:lang = $output-language]">
-                                <xsl:apply-templates select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][not(tei:addName)][@xml:lang = $output-language][1]" mode="m_plain-text"/>
+                                <xsl:apply-templates select="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][not(tei:addName)][not(tei:roleName)][@xml:lang = $output-language][1]" mode="m_plain-text"/>
                             </xsl:when>
                             <!-- fallback to first full name in selected output language-->
                             <xsl:when test="$v_person/descendant-or-self::tei:person/tei:persName[not(@type = 'flattened')][@xml:lang = $output-language]">
@@ -137,7 +137,7 @@
                         <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='VIAF']"/>
                     </xsl:when>
                     <xsl:when test="$output-mode = 'oape'">
-                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='oape']"/>
+                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='oape'][1]"/>
                     </xsl:when>
                     <!-- return number of works in viaf -->
                     <xsl:when test="$output-mode = 'countWorks' and $v_viaf-id!=''">

@@ -12,7 +12,8 @@
         </xd:desc>
     </xd:doc>
     <!-- select preference for output language -->
-    <xsl:param name="p_output-language" select="'ar-Latn-x-ijmes'"/>
+    <xsl:param name="p_output-language-persons" select="'ar'"/>
+    <xsl:param name="p_output-language-places" select="'ar-Latn-x-ijmes'"/>
     <!-- locate authority files -->
     <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
     <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
@@ -158,7 +159,7 @@
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.location.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information on article -->
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -172,7 +173,7 @@
             <xsl:text>works.viaf.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>is.independent</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>byline.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>byline.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>byline.location.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>byline.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -192,7 +193,7 @@
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.location.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information on article -->
             <xsl:text>bibl.text</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -233,9 +234,9 @@
                 <xsl:value-of select="$v_issue"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language)"/>
+                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language-places)"/>
                 <xsl:value-of select="$v_seperator"/>
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'oape',$p_output-language)"/>
+                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'oape','')"/>
                 <xsl:value-of select="$v_seperator"/>
                 <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'location','')"/>
                 <xsl:value-of select="$v_seperator"/>
@@ -253,7 +254,7 @@
                 <xsl:value-of select="descendant-or-self::tei:title[@level = 'a']"/><xsl:value-of select="$v_seperator"/>
                 <!-- authors -->
                 <xsl:for-each select="descendant::tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language-persons)"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -261,7 +262,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- editors names -->
                 <xsl:for-each select="descendant::tei:editor/child::node()[not(matches(.,'\s+'))]">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language-persons)"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -273,12 +274,12 @@
                     <xsl:when test="count(descendant::tei:pubPlace/tei:placeName) &gt; 1">
                         <xsl:for-each select="descendant::tei:pubPlace/tei:placeName">
                             <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'name',$p_output-language)"/>
+                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'name',$p_output-language-places)"/>
                             </xsl:if>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'name',$p_output-language)"/>
+                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'name',$p_output-language-places)"/>
                     </xsl:otherwise>
                 </xsl:choose>
                 </xsl:if>
@@ -288,12 +289,12 @@
                     <xsl:when test="count(descendant::tei:pubPlace/tei:placeName) &gt; 1">
                         <xsl:for-each select="descendant::tei:pubPlace/tei:placeName">
                             <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'oape',$p_output-language)"/>
+                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'oape','')"/>
                             </xsl:if>
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'oape',$p_output-language)"/>
+                        <xsl:value-of select="oape:query-gazetteer(descendant::tei:pubPlace/tei:placeName,$v_gazetteer,'oape','')"/>
                     </xsl:otherwise>
                 </xsl:choose>
                 </xsl:if>
@@ -315,7 +316,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publisher -->
                 <xsl:for-each select="descendant::tei:publisher/child::node()[not(matches(.,'\s+'))]">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language-persons)"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -355,9 +356,9 @@
                 <xsl:value-of select="$v_issue"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language)"/>
+                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'name',$p_output-language-places)"/>
                 <xsl:value-of select="$v_seperator"/>
-                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'oape',$p_output-language)"/>
+                <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'oape','')"/>
                 <xsl:value-of select="$v_seperator"/>
                 <xsl:value-of select="oape:query-gazetteer($v_publication-place,$v_gazetteer,'location','')"/>
                 <xsl:value-of select="$v_seperator"/>
@@ -395,7 +396,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- normalized -->
                 <xsl:for-each select="tei:byline/descendant::tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language-persons)"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -462,7 +463,7 @@
                         </xsl:message>-->
                         <xsl:for-each select="tei:byline/descendant::tei:placeName">
                             <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'name',$p_output-language)"/>
+                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'name',$p_output-language-places)"/>
                             </xsl:if>
                             <!--<xsl:if test="position() != last()">
                                 <xsl:text>|</xsl:text>
@@ -470,7 +471,7 @@
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(tei:byline/descendant::tei:placeName,$v_gazetteer,'name',$p_output-language)"/>
+                        <xsl:value-of select="oape:query-gazetteer(tei:byline/descendant::tei:placeName,$v_gazetteer,'name',$p_output-language-places)"/>
                     </xsl:otherwise>
                 </xsl:choose>
                 </xsl:if>
@@ -484,7 +485,7 @@
                         </xsl:message>-->
                         <xsl:for-each select="tei:byline/descendant::tei:placeName">
                             <xsl:if test="oape:query-gazetteer(.,$v_gazetteer,'type','') = 'town'">
-                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'oape',$p_output-language)"/>
+                                <xsl:value-of select="oape:query-gazetteer(.,$v_gazetteer,'oape','')"/>
                             </xsl:if>
                             <!--<xsl:if test="position() != last()">
                                 <xsl:text>|</xsl:text>
@@ -492,7 +493,7 @@
                         </xsl:for-each>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:value-of select="oape:query-gazetteer(tei:byline/descendant::tei:placeName,$v_gazetteer,'oape',$p_output-language)"/>
+                        <xsl:value-of select="oape:query-gazetteer(tei:byline/descendant::tei:placeName,$v_gazetteer,'oape','')"/>
                     </xsl:otherwise>
                 </xsl:choose>
                 </xsl:if>
