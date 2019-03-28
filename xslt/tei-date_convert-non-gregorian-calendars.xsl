@@ -3,6 +3,7 @@
     xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns="http://www.tei-c.org/ns/1.0"  
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:oape="https://openarabicpe.github.io/ns"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0" version="2.0">
     <xsl:output method="xml" encoding="UTF-8" indent="no" omit-xml-declaration="no" version="1.0"/>
     <xsl:include href="../../../xslt-calendar-conversion/date-function.xsl"/>
@@ -33,7 +34,8 @@
                         </xsl:otherwise>
                     </xsl:choose>
             <xsl:attribute name="when">
-                <xsl:choose>
+                <xsl:value-of select="oape:date-convert-calendars(@when, @datingMethod, '#cal_gregorian')"/>
+                <!--<xsl:choose>
                     <xsl:when test="@datingMethod='#cal_islamic'">
                         <xsl:call-template name="funcDateH2G">
                             <xsl:with-param name="pDateH" select="@when-custom"/>
@@ -49,7 +51,7 @@
                             <xsl:with-param name="pDateJ" select="@when-custom"/>
                         </xsl:call-template>
                     </xsl:when>
-                </xsl:choose>
+                </xsl:choose>-->
             </xsl:attribute>
             <xsl:apply-templates/>
         </xsl:copy>
@@ -70,18 +72,10 @@
                     </xsl:choose>
             <xsl:variable name="v_date-h-1"
                 select="concat(@when-custom,'-01-01')"/>
-            <xsl:variable name="v_date-g-1">
-                <xsl:call-template name="funcDateH2G">
-                    <xsl:with-param name="pDateH" select="$v_date-h-1"/>
-                </xsl:call-template>
-            </xsl:variable>
+            <xsl:variable name="v_date-g-1" select="oape:date-convert-calendars($v_date-h-1, '#cal_islamic', '#cal_gregorian')"/>                
             <xsl:variable name="v_date-h-2"
                 select="concat(@when-custom,'-12-29')"/>
-            <xsl:variable name="v_date-g-2">
-                <xsl:call-template name="funcDateH2G">
-                    <xsl:with-param name="pDateH" select="$v_date-h-2"/>
-                </xsl:call-template>
-            </xsl:variable>
+            <xsl:variable name="v_date-g-2" select="oape:date-convert-calendars($v_date-h-2, '#cal_islamic', '#cal_gregorian')"/>
             <!-- test if the Hijrī year spans more than one Gregorian year (this is not the case for 1295, 1329  -->
             <xsl:choose>
                 <xsl:when test="substring($v_date-g-1,1,4)=substring($v_date-g-2,1,4)">
