@@ -8,7 +8,8 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
     
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:param name="p_id-editor" select="'pers_TG'"/>
+    <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
+    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <xsl:param name="p_string-length" select="30"/>
     
@@ -59,6 +60,7 @@
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
+                <xsl:attribute name="xml:lang" select="'en'"/>
                 <xsl:text>Automatically split all </xsl:text><tei:tag>div type="section"</tei:tag><xsl:text> into subsections of </xsl:text><tei:tag>div type="article"</tei:tag><xsl:text>, using paragraphs with a length of </xsl:text><xsl:value-of select="$p_string-length"/><xsl:text> or less as indicator of a heading.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
