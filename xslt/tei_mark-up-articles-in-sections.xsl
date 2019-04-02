@@ -11,7 +11,7 @@
     <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
-    <xsl:param name="p_string-length" select="30"/>
+    <xsl:param name="p_string-length" select="50"/>
     
     <!-- reproduce everything as is -->
     <xsl:template match="@* | node()">
