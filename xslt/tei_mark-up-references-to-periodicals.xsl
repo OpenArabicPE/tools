@@ -21,15 +21,26 @@
     </xsl:template>
     
     <xsl:template match="text()[not(ancestor::tei:title)]">
-        <xsl:analyze-string select="." regex="(\W(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)">
+        <xsl:analyze-string select="." regex="((\W|و)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)|((\W|و)(مجلة|جريدة)\s+\()(.+?)(\))">
             <xsl:matching-substring>
-                <xsl:value-of select="regex-group(1)"/>
+                <xsl:if test="matches(.,'((\W|و)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)')">
+                    <xsl:value-of select="regex-group(1)"/>
                 <xsl:element name="tei:title">
                     <xsl:attribute name="level" select="'j'"/>
                     <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
-                    <xsl:value-of select="regex-group(3)"/>
+                    <xsl:value-of select="regex-group(4)"/>
                 </xsl:element>
-                <xsl:value-of select="regex-group(4)"/>
+                <xsl:value-of select="regex-group(5)"/>
+                </xsl:if>
+                <xsl:if test="matches(.,'((\W|و)(مجلة|جريدة)\s+\()(.+?)(\))')">
+                    <xsl:value-of select="regex-group(6)"/>
+                <xsl:element name="tei:title">
+                    <xsl:attribute name="level" select="'j'"/>
+                    <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    <xsl:value-of select="regex-group(9)"/>
+                </xsl:element>
+                <xsl:value-of select="regex-group(10)"/>
+                </xsl:if>
             </xsl:matching-substring>
             <xsl:non-matching-substring>
                 <xsl:value-of select="."/>
