@@ -90,6 +90,7 @@
         <xsl:variable name="v_viaf-id" select="if(matches($persName/@ref,'viaf:\d+')) then(replace($persName/@ref,'^.*viaf:(\d+).*$','$1')) else()"/>
         <xsl:variable name="v_oape-id" select="if(matches($persName/@ref,'oape:pers:\d+')) then(replace($persName/@ref,'^.*oape:pers:(\d+).*$','$1')) else()"/>
         <!--<xsl:message>
+            <xsl:text>query personagraphy for </xsl:text><xsl:value-of select="$output-mode"/><xsl:text> of </xsl:text>
             <xsl:text>VIAF ID: </xsl:text><xsl:value-of select="$v_viaf-id"/>
             <xsl:text>, OpenArabicPE ID: </xsl:text><xsl:value-of select="$v_oape-id"/>
         </xsl:message>-->
@@ -134,7 +135,7 @@
                         </xsl:choose>
                     </xsl:when>
                      <xsl:when test="$output-mode = 'viaf'">
-                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='VIAF']"/>
+                        <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='VIAF'][1]"/>
                     </xsl:when>
                     <xsl:when test="$output-mode = 'oape'">
                         <xsl:value-of select="$v_person/descendant-or-self::tei:person/tei:idno[@type='oape'][1]"/>
