@@ -130,7 +130,7 @@
                                         </xsl:when>
                                     </xsl:choose>
                                     <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                                    <xsl:apply-templates select="$v_preceding-sibling"/>
+                                    <xsl:copy-of select="$v_preceding-sibling"/>
                                 </xsl:element>
                                 <xsl:value-of select="."/>
                             </xsl:matching-substring>
@@ -174,7 +174,7 @@
                                         </xsl:otherwise>
                                     </xsl:choose>
                                     <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                                    <xsl:apply-templates select="$v_following-sibling"/>
+                                    <xsl:copy-of select="$v_following-sibling"/>
                                 </xsl:element>
                             </xsl:matching-substring>
                             <xsl:non-matching-substring>
@@ -194,13 +194,13 @@
             </xsl:non-matching-substring>
         </xsl:analyze-string>
     </xsl:template>
-    <!-- remove <num>s that have been wrapped in <date> -->
-    <!--<xsl:template
-        match="tei:num[@value &gt;= $p_treshold][not(ancestor::tei:date)][preceding-sibling::text()[1][matches(., '(سنة|عام)\s*$')]] | tei:num[@value &gt;= $p_treshold][not(ancestor::tei:date)][following-sibling::text()[1][matches(., '^\s*(هـ|م)')]]">
+<!--     remove <num>s that have been wrapped in <date> -->
+    <xsl:template
+        match="tei:num[not(ancestor::tei:date)][preceding-sibling::text()[1][matches(., '(سنة|عام)\s*$')]] | tei:num[not(ancestor::tei:date)][following-sibling::text()[1][matches(., '^\s*(هـ|م)\W')]]">
         <xsl:if test="$p_verbose = true()">
             <xsl:message>
                 <xsl:text>Found a num following an indicator of a date.</xsl:text>
             </xsl:message>
         </xsl:if>
-    </xsl:template>-->
+    </xsl:template>
 </xsl:stylesheet>
