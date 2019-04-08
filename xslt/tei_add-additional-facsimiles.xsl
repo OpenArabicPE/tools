@@ -155,7 +155,7 @@
         </xsl:choose>
     </xsl:variable>
     <!-- local path to folder containing the images of this issue -->
-    <xsl:variable name="v_path-base" select="concat('../images/',$v_name-base,'/')"/>
+    <xsl:variable name="v_path-base" select="concat('../images/',$v_name-base,'/oib/')"/>
     <xsl:variable name="v_path-file" select="concat($v_path-base, $v_name-file)"/>
 
     <!-- prefix for the @xml:id of all facsimiles -->
