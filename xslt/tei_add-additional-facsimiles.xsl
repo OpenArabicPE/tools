@@ -43,21 +43,7 @@
     <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="0" as="xs:integer"/>
-    <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
-    <xsl:param name="p_periodical" select="'haqaiq'"/>
-    <xsl:variable name="v_oclc">
-        <xsl:choose>
-            <xsl:when test="lower-case($p_periodical) = 'haqaiq'">
-                <xsl:text>644997575</xsl:text>
-            </xsl:when>
-            <xsl:when test="lower-case($p_periodical) = 'muqtabas'">
-                <xsl:text>4770057679</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:text>na</xsl:text>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:variable>
+    
     <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
     <!-- volume in EAP collection: needs to be set  -->
@@ -70,6 +56,21 @@
     
     <!-- variables based on the input file -->
     <xsl:variable name="v_biblStructSource" select="//tei:sourceDesc/tei:biblStruct"/>
+    <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
+    <xsl:param name="p_periodical"/>
+    <xsl:variable name="v_oclc">
+        <xsl:choose>
+            <xsl:when test="lower-case($p_periodical) = 'haqaiq'">
+                <xsl:text>644997575</xsl:text>
+            </xsl:when>
+            <xsl:when test="lower-case($p_periodical) = 'muqtabas'">
+                <xsl:text>4770057679</xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="$v_biblStructSource/descendant::tei:idno[@type='OCLC'][1]"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
     <xsl:variable name="v_volume">
         <xsl:choose>
             <!-- check for correct encoding of volume information -->
