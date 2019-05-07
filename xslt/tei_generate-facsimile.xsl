@@ -8,7 +8,7 @@
     xmlns="http://www.tei-c.org/ns/1.0"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0"
     exclude-result-prefixes="xs xd html"
-    version="2.0">
+    version="3.0">
     
     <xd:doc scope="stylesheet">
         <xd:desc>
@@ -28,7 +28,9 @@
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <!-- params to toggle certain links -->
-    <xsl:param name="p_file-local" select="false()"/>
+    <xsl:param name="p_file-local" select="true()"/>
+    <xsl:param name="p_file-local-oib" select="true()"/>
+    <xsl:param name="p_file-local-hathi" select="false()"/>
     <xsl:param name="p_file-hathi" select="false()"/>
     <xsl:param name="p_file-eap" select="true()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
@@ -146,16 +148,31 @@
     <xsl:variable name="v_name-base" select="concat('oclc_',$v_oclc,'-v_',$v_volume)"/>
     <xsl:variable name="v_name-file">
         <xsl:choose>
-            <xsl:when test="lower-case($p_periodical) = 'muqtabas'">
+            <xsl:when test="$p_file-local-hathi = true()">
                 <xsl:value-of select="concat(translate($vHathiTrustId,'.','-'),'-img_')"/>
             </xsl:when>
+            <!--<xsl:when test="lower-case($p_periodical) = 'muqtabas'">
+                <xsl:value-of select="concat(translate($vHathiTrustId,'.','-'),'-img_')"/>
+            </xsl:when>-->
             <xsl:otherwise>
                 <xsl:value-of select="concat($v_name-base,'-img_')"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
     <!-- local path to folder containing the images of this issue -->
-    <xsl:variable name="v_path-base" select="concat('../images/',$v_name-base,'/')"/>
+    <xsl:variable name="v_path-base">
+        <xsl:choose>
+            <xsl:when test="$p_file-local-oib = true()">
+                <xsl:value-of select="concat('../images/',$v_name-base,'/oib/')"/>
+            </xsl:when>
+            <xsl:when test="$p_file-local-hathi = true()">
+                <xsl:value-of select="concat('../images/',$v_name-base,'/hathi/')"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="concat('../images/',$v_name-base,'/')"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:variable>
     <xsl:variable name="v_path-file" select="concat($v_path-base, $v_name-file)"/>
 
     <!-- prefix for the @xml:id of all facsimiles -->
@@ -269,7 +286,22 @@
         <xsl:param name="p_page-stop" select="20"/>
         <xsl:element name="tei:surface">
             <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start)"/>
-            <xsl:if test="$p_file-local = true()">
+            <xsl:if test="$p_file-local-oib = true()">
+                <!-- local TIFF copy -->
+                <xsl:element name="tei:graphic">
+                    <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_1')"/>
+                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start,'000'),'.tif')"/>
+                    <xsl:attribute name="mimeType" select="'image/tiff'"/>
+                </xsl:element>
+                <!-- local JPEG copy -->
+                <!--<xsl:element name="tei:graphic">
+                    <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_2')"/>
+                    <!-\- when local files were downloaded from HathiTrust, the set-off should be similar -\->
+                    <xsl:attribute name="url" select="concat($v_path-file,format-number($p_page-start + $p_image-setoff_hathi,'000'),'.jpg')"/>
+                    <xsl:attribute name="mimeType" select="'image/jpeg'"/>
+                </xsl:element>-->
+            </xsl:if>
+            <xsl:if test="$p_file-local-hathi = true()">
                 <!-- local TIFF copy -->
                 <!--<xsl:element name="tei:graphic">
                     <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_1')"/>
