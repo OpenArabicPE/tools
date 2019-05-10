@@ -48,7 +48,7 @@
                         </xsl:element>
                     </xsl:for-each-group>
                 </xsl:when>
-                <!--<xsl:when
+                <xsl:when
                     test="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1][preceding-sibling::tei:head]">
                     <xsl:if test="$p_verbose = true()">
                         <xsl:message>
@@ -56,11 +56,11 @@
                         </xsl:message>
                     </xsl:if>
                     <xsl:apply-templates select="tei:head"/>
-                    <!-\- assume that the first paragraph is also a short one -\->
+                    <!-- assume that the first paragraph is also a short one -->
                     <xsl:apply-templates mode="m_group-divs"
                         select="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]"
                     />
-                </xsl:when>-->
+                </xsl:when>
                 <xsl:otherwise>
                     <xsl:apply-templates/>
                 </xsl:otherwise>
@@ -82,6 +82,7 @@
         </xsl:message>-->
         <xsl:element name="tei:div">
             <xsl:attribute name="type" select="'item'"/>
+            <xsl:attribute name="subtype" select="'article'"/>
             <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
             <xsl:element name="tei:head">
                 <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
