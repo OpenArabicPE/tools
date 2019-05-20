@@ -55,7 +55,9 @@
     <xsl:variable name="v_iiif-prefix" select="'/EAP119'"/>
     
     <!-- variables based on the input file -->
-    <xsl:variable name="v_biblStructSource" select="//tei:sourceDesc/tei:biblStruct"/>
+    <!-- select the first edition by default -->
+    <xsl:param name="p_edition-id" select="'edition_1'"/>
+    <xsl:variable name="v_biblStructSource" select="//tei:sourceDesc/tei:biblStruct[@xml:id=$p_edition-id]"/>
     <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
     <xsl:param name="p_periodical"/>
     <xsl:variable name="v_oclc">
