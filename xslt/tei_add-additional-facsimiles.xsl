@@ -178,7 +178,7 @@
             <!-- add new facsimile for this page -->
             <!-- assume that the sequence of surface children of facsimile follow the sequence of pages. Figure out which page we are at-->
             <xsl:variable name="v_page" select="count(preceding-sibling::tei:surface) + $v_page-start"/>
-            <xsl:variable name="v_graphic" select="count(tei:graphic) + 1"/>
+            <xsl:variable name="v_graphic" select="count(tei:graphic) + 3"/>
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat(@xml:id, '-g_', $v_graphic)"/>
                 <xsl:attribute name="change" select="concat('#',$p_id-change)"></xsl:attribute>
