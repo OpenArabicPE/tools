@@ -18,7 +18,6 @@
     </xd:doc>
     
     <!-- TO DO: 
-        1. the OCLC number must be retrieved from the input file
         2. EAP has switched to IIIF and therefore new URLs-->
     
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
@@ -47,7 +46,7 @@
     <xsl:param name="p_image-setoff_local" select="11" as="xs:integer"/>
     <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
     <xsl:param name="p_periodical" select="'muqtabas'"/>
-    <xsl:variable name="v_oclc">
+    <!--<xsl:variable name="v_oclc">
         <xsl:choose>
             <xsl:when test="lower-case($p_periodical) = 'haqaiq'">
                 <xsl:text>644997575</xsl:text>
@@ -59,7 +58,8 @@
                 <xsl:text>na</xsl:text>
             </xsl:otherwise>
         </xsl:choose>
-    </xsl:variable>
+    </xsl:variable>-->
+    <xsl:variable name="v_oclc" select="tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct[1]/descendant::tei:idno[@type='OCLC'][1]"/>
     <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
     <!-- volume in EAP collection: needs to be set  -->
@@ -137,8 +137,21 @@
     <xsl:variable name="vFileUrlHathi" select="concat('https://babel.hathitrust.org/cgi/imgsrv/image?id=',$vHathiTrustId,';seq=')"/>
     
     <!-- URL to archive.sakhrit -->
-    <xsl:variable name="v_url-sakhrit-base" select="'http://archive.sakhrit.co/MagazinePages/Magazine_JPG/'"/>
-    <xsl:variable name="v_journal-title-sakhrit" select="'AL_moqtabs'"/>
+    <xsl:variable name="v_url-sakhrit-base" select="'http://archive.alsharekh.org/MagazinePages/Magazine_JPG/'"/>
+<!--    <xsl:variable name="v_journal-title-sakhrit" select="'AL_moqtabs'"/>-->
+    <xsl:variable name="v_journal-title-sakhrit">
+        <xsl:choose>
+            <xsl:when test="$p_periodical = 'ustadh'">
+                <xsl:text>AL_ostaz</xsl:text>
+            </xsl:when>
+            <xsl:when test="$p_periodical = 'muqtabas'">
+                <xsl:text>AL_moqtabs</xsl:text>
+            </xsl:when>
+            <xsl:when test="$p_periodical = 'lughat'">
+                <xsl:text>loghat_el_arab</xsl:text>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:variable>
     <xsl:param name="p_year-sakhrit" select="'1906'"/>
     <xsl:variable name="v_url-sakhrit" select="concat($v_url-sakhrit-base,$v_journal-title-sakhrit,'/',$v_journal-title-sakhrit,'_',$p_year-sakhrit,'/Issue_',$v_issue,'/')"/>    
     
