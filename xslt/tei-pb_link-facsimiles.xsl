@@ -49,21 +49,22 @@
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
-        <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
-    <xsl:template match="tei:pb/@change">
-        <xsl:attribute name="change">
-                    <xsl:value-of select="concat(.,' #',$p_id-change)"/>
-        </xsl:attribute>
-    </xsl:template>
     
     <xsl:template match="tei:pb[@ed='print']">
         <xsl:variable name="vPosPb" select="count(preceding::tei:pb[@ed = 'print']) +1"/>
         <xsl:copy>
             <!-- add documentation of change -->
-                    <xsl:if test="not(@change)">
-                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
-                    </xsl:if>
             <xsl:apply-templates select="@*"/>
+            <xsl:choose>
+                <xsl:when test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                    </xsl:when>
+                <xsl:otherwise>
+                    <xsl:attribute name="change">
+                    <xsl:value-of select="concat(@change,' #',$p_id-change)"/>
+        </xsl:attribute>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:attribute name="facs">
                 <xsl:value-of select="concat('#',$vFacs/descendant::tei:surface[$vPosPb]/@xml:id)"/>
             </xsl:attribute>

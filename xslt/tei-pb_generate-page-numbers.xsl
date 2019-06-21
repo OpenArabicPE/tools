@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet exclude-result-prefixes="xs xd html" version="2.0"
+<xsl:stylesheet exclude-result-prefixes="xs xd html" version="3.0"
     xmlns="http://www.tei-c.org/ns/1.0" xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
@@ -53,11 +53,6 @@
         </xsl:copy>
     </xsl:template>
     <!-- document changes on changed elements by means of the @change attribute linking to the @xml:id of the <tei:change> element -->
-    <xsl:template match="tei:pb/@change">
-        <xsl:attribute name="change">
-            <xsl:value-of select="concat(., ' #', $p_id-change)"/>
-        </xsl:attribute>
-    </xsl:template>
     <xsl:template match="tei:pb[not(@ed = 'shamela')]" name="t_1">
         <xsl:if test="$p_verbose = true()">
             <xsl:message>
@@ -68,11 +63,18 @@
         <xsl:variable name="v_page-first"
             select="$v_sourceDesc/tei:biblStruct//tei:biblScope[@unit = 'page']/@from"/>
         <xsl:copy>
-            <!-- add documentation of change -->
-            <xsl:if test="not(@change)">
-                <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-            </xsl:if>
             <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
+            <xsl:choose>
+            <xsl:when test="not(@change)">
+                <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+            </xsl:when>
+                <xsl:otherwise>
+                    <xsl:attribute name="change">
+            <xsl:value-of select="concat(@change, ' #', $p_id-change)"/>
+        </xsl:attribute>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:attribute name="ed">
                 <xsl:text>print</xsl:text>
             </xsl:attribute>
