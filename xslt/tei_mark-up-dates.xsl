@@ -1,7 +1,9 @@
 <xsl:stylesheet exclude-result-prefixes="xs xd html" version="3.0"
     xmlns="http://www.tei-c.org/ns/1.0" xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:oape="https://openarabicpe.github.io/ns"
+    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xpath-default-namespace="http://www.tei-c.org/ns/1.0">
     <xd:doc scope="stylesheet">
         <xd:desc>
@@ -10,6 +12,9 @@
     </xd:doc>
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no"
         version="1.0"/>
+    <!-- include dating functions -->
+    <!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
+    <xsl:include href="/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/date-function.xsl"/>
     <!-- identify the author of the change by means of a @xml:id -->
     <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
@@ -202,5 +207,27 @@
                 <xsl:text>Found a num following an indicator of a date.</xsl:text>
             </xsl:message>
         </xsl:if>
+    </xsl:template>
+    
+    <!-- add machine-readable data to existing date-nodes -->
+    <xsl:template match="tei:date[@calendar][not(@when-custom)][not(@calendar='#cal_gregorian')]">
+        <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(.,@xml:lang,@calendar)"/>
+                <xsl:if test="matches($v_date-normalised, '\d{4}-\d{2}-\d{2}')">
+                    <xsl:attribute name="when-custom" select="$v_date-normalised"/>
+                    <xsl:attribute name="datingMethod" select="@calendar"/>
+                    <xsl:attribute name="when" select="oape:date-convert-calendars($v_date-normalised, @calendar, '#cal_gregorian')"/>
+                    <xsl:choose>
+                        <xsl:when test="@change">
+                            <xsl:apply-templates select="@change" mode="m_documentation"/>
+                        </xsl:when>
+                        <xsl:otherwise>
+                            <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                        </xsl:otherwise>
+                    </xsl:choose>
+                </xsl:if>
+            <xsl:apply-templates select="node()"/>
+        </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>

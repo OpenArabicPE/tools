@@ -60,6 +60,12 @@
             <xsl:apply-templates select="@*"/>
             <!-- move the first page beginning before the content -->
             <xsl:copy-of select="descendant::tei:pb[@ed='print'][1]"/>
+            <!-- check if there is a front -->
+            <xsl:if test="not(tei:front)">
+                <front change="{concat('#',$p_id-change)}">
+                    <xsl:call-template name="t_generate-masthead"/>
+                </front>
+            </xsl:if>
             <xsl:apply-templates/>
         </xsl:copy>
     </xsl:template>
@@ -71,6 +77,18 @@
                 <!--<xsl:apply-templates mode="m_documentation" select="@change"/>-->
             </xsl:copy>
         </xsl:if>
+    </xsl:template>
+    
+    <!-- suppress the first div of the body for *al-ustādh* -->
+    <xsl:template match="tei:body/tei:div[1]">
+        <xsl:choose>
+            <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '1036721166'"/>
+            <xsl:otherwise>
+                <xsl:copy>
+                    <xsl:apply-templates select="@* | node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- generate a new <front>-->
@@ -86,47 +104,13 @@
                     <xsl:apply-templates mode="m_documentation" select="@change"/>
                 </xsl:otherwise>
             </xsl:choose>
-            <!-- add a masthead -->
-            <xsl:element name="tei:div">
-                <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
-                <xsl:attribute name="type" select="'masthead'"/>
-                <xsl:element name="tei:bibl">
-                    <!-- issue information -->
-                    <xsl:element name="tei:biblScope">
-                        <xsl:attribute name="unit" select="'issue'"/>
-                        <xsl:attribute name="from" select="$v_biblSource//tei:biblScope[@unit='issue']/@from"/>
-                        <xsl:attribute name="to" select="$v_biblSource//tei:biblScope[@unit='issue']/@to"/>
-                        <xsl:choose>
-                            <xsl:when test="$v_lang = 'ar'">
-                                <xsl:text>الجزء </xsl:text>
-                            </xsl:when>
-                            <xsl:when test="$v_lang = 'en'">
-                                <xsl:text>issue </xsl:text>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:text>issue </xsl:text>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                        <xsl:choose>
-                            <!-- check for correct encoding of issue information -->
-                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@from = $v_biblSource//tei:biblScope[@unit = 'issue']/@to">
-                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@from"/>
-                            </xsl:when>
-                            <!-- check for ranges -->
-                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@from != $v_biblSource//tei:biblScope[@unit = 'issue']/@to">
-                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@from"/>
-                                <!-- probably an en-dash is the better option here -->
-                                <xsl:text>/</xsl:text>
-                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@to"/>
-                            </xsl:when>
-                            <!-- fallback: erroneous encoding of issue information with @n -->
-                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@n">
-                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@n"/>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:element>
-                    <!-- volume information -->
-                    <xsl:element name="tei:biblScope">
+            <xsl:call-template name="t_generate-masthead"/>
+        </xsl:copy>
+    </xsl:template>
+    <xsl:template name="t_generate-masthead">
+        <!-- variables -->
+        <xsl:variable name="v_volume">
+            <xsl:element name="tei:biblScope">
                         <xsl:attribute name="unit" select="'volume'"/>
                         <xsl:attribute name="from" select="$v_biblSource//tei:biblScope[@unit='volume']/@from"/>
                         <xsl:attribute name="to" select="$v_biblSource//tei:biblScope[@unit='volume']/@to"/>
@@ -159,28 +143,101 @@
                             </xsl:when>
                         </xsl:choose>
                     </xsl:element>
-                    <lb/>
-                    <!-- main title -->
-                    <xsl:apply-templates mode="m_copy" select="$v_biblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
+        </xsl:variable>
+        <xsl:variable name="v_issue">
+            <xsl:element name="tei:biblScope">
+                        <xsl:attribute name="unit" select="'issue'"/>
+                        <xsl:attribute name="from" select="$v_biblSource//tei:biblScope[@unit='issue']/@from"/>
+                        <xsl:attribute name="to" select="$v_biblSource//tei:biblScope[@unit='issue']/@to"/>
+                        <xsl:choose>
+                            <xsl:when test="$v_lang = 'ar'">
+                                <xsl:text>الجزء </xsl:text>
+                            </xsl:when>
+                            <xsl:when test="$v_lang = 'en'">
+                                <xsl:text>issue </xsl:text>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:text>issue </xsl:text>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                        <xsl:choose>
+                            <!-- check for correct encoding of issue information -->
+                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@from = $v_biblSource//tei:biblScope[@unit = 'issue']/@to">
+                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@from"/>
+                            </xsl:when>
+                            <!-- check for ranges -->
+                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@from != $v_biblSource//tei:biblScope[@unit = 'issue']/@to">
+                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@from"/>
+                                <!-- probably an en-dash is the better option here -->
+                                <xsl:text>/</xsl:text>
+                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@to"/>
+                            </xsl:when>
+                            <!-- fallback: erroneous encoding of issue information with @n -->
+                            <xsl:when test="$v_biblSource//tei:biblScope[@unit = 'issue']/@n">
+                                <xsl:value-of select="$v_biblSource//tei:biblScope[@unit = 'issue']/@n"/>
+                            </xsl:when>
+                        </xsl:choose>
+                    </xsl:element>
+        </xsl:variable>
+        <xsl:variable name="v_title">
+            <xsl:apply-templates mode="m_copy" select="$v_biblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>
+        </xsl:variable>
+        <xsl:variable name="v_date" select="$v_biblSource//tei:date[@when][1]/@when"/>
+        <xsl:variable name="v_date-gregorian" select="oape:date-format-iso-string-to-tei($v_date,'#cal_gregorian', true(), false(),'ar')"/>
+        <xsl:variable name="v_date-islamic" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_islamic'),'#cal_islamic', true(), false(),'ar')"/>
+        <xsl:variable name="v_date-julian" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_julian'),'#cal_julian', true(), false(),'ar')"/>
+        <xsl:variable name="v_date-coptic" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_coptic'),'#cal_coptic', true(), false(),'ar')"/>
+        <!-- content -->
+            <!-- add a masthead -->
+            <xsl:element name="tei:div">
+                <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
+                <xsl:attribute name="type" select="'masthead'"/>
+                <xsl:element name="tei:bibl">
+                    
                     <!--                    <xsl:copy-of select="$v_biblSource//tei:title[@level='j'][@xml:lang='ar'][not(@type='sub')]"/>-->
                     <!-- some periodicals, such as al-Ḥaqāʾiq provide the place of publication. This should be automatically toggled, for instance on the basis of the oclc number -->
                     <xsl:choose>
                         <!-- al-Ḥaqāʾiq -->
                         <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '644997575'">
+                            <!-- issue information -->
+                            <xsl:copy-of select="$v_issue"/>
+                            <!-- volume information -->
+                            <xsl:copy-of select="$v_volume"/>
+                            <lb/>
+                             <!-- main title -->
+                             <xsl:copy-of select="$v_title"/>
                             <!-- here follows the date line -->
                             <lb/>
                             <xsl:apply-templates select="$v_biblSource//tei:monogr/tei:imprint/tei:pubPlace/tei:placeName[@xml:lang='ar'][1]"/>
                             <xsl:text>في </xsl:text>
-                            <xsl:apply-templates mode="mBibl" select="$v_biblSource//tei:date[@calendar='#cal_islamic']"/>
+                            <xsl:copy-of select="$v_date-islamic"/>
                             <!--<xsl:text>و</xsl:text><xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_ottomanfiscal']" mode="mBibl"/><xsl:text>و</xsl:text><xsl:apply-templates select="$v_biblSource//tei:date[@calendar='#cal_gregorian']" mode="mBibl"/>-->
                         </xsl:when>
                         <!-- al-Muqtabas -->
                         <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '4770057679' and $v_biblSource//tei:biblScope[@unit='volume']/@from &lt; 6">
+                            <!-- issue information -->
+                            <xsl:copy-of select="$v_issue"/>
+                            <!-- volume information -->
+                            <xsl:copy-of select="$v_volume"/>
+                            <lb/>
+                            <!-- main title -->
+                            <xsl:copy-of select="$v_title"/>
                             <!-- here follows the date line -->
                             <lb/>
-                            <xsl:apply-templates mode="mBibl" select="$v_biblSource//tei:date[@calendar='#cal_islamic']"/>
+                            <xsl:copy-of select="$v_date-islamic"/>
                             <xsl:text> موافق </xsl:text>
-                            <xsl:copy-of select="oape:date-format-iso-string-to-tei($v_biblSource//tei:date[@when][1]/@when,'#cal_julian', true(), false(), 'ar')"/>
+                            <xsl:copy-of select="$v_date-julian"/>
+                        </xsl:when>
+                        <!-- al-Ustādh -->
+                        <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '1036721166'">
+                            <xsl:copy-of select="$v_title"/>
+                            <lb/>
+                            <xsl:copy-of select="$v_issue"/><xsl:text> من </xsl:text><xsl:copy-of select="$v_volume"/>
+                            <lb/>
+                            <!-- dateline -->
+                            <xsl:copy-of select="$v_date-islamic"/><xsl:text> و</xsl:text><xsl:copy-of select="$v_date-coptic"/>
+                            <lb/>
+                            <xsl:text>الموافق </xsl:text><xsl:copy-of select="oape:date-format-iso-string-to-tei($v_date,'#cal_gregorian', true(), false(),'ar-EG')"/>
                         </xsl:when>
                         <xsl:otherwise>
                             <!-- newspapers -->
@@ -197,7 +254,6 @@
                     </xsl:choose>
                 </xsl:element>
             </xsl:element>
-        </xsl:copy>
     </xsl:template>
     <xsl:template match="tei:imprint/tei:date" mode="mBibl">
         <xsl:variable name="v_date">
