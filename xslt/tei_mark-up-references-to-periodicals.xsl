@@ -14,11 +14,11 @@
     </xsl:template>
     <xsl:template match="text()[not(ancestor::tei:title)]">
         <xsl:analyze-string
-            regex="((\W|و)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)|((\W|و)(مجلة|جريدة)\s+\()(.+?)(\))"
+            regex="((\W|و|^)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)|((\W|و|^)(مجلة|جريدة)\s+\()(.+?)(\))"
             select=".">
             <xsl:matching-substring>
                 <xsl:choose>
-                    <xsl:when test="matches(., '((\W|و)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)')">
+                    <xsl:when test="matches(., '((\W|و|^)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)')">
                         <xsl:value-of select="regex-group(1)"/>
                         <xsl:element name="tei:title">
                             <xsl:attribute name="level" select="'j'"/>
@@ -27,7 +27,7 @@
                         </xsl:element>
                         <xsl:value-of select="regex-group(5)"/>
                     </xsl:when>
-                    <xsl:when test="matches(., '((\W|و)(مجلة|جريدة)\s+\()(.+?)(\))')">
+                    <xsl:when test="matches(., '((\W|و|^)(مجلة|جريدة)\s+\()(.+?)(\))')">
                         <xsl:value-of select="regex-group(6)"/>
                         <xsl:element name="tei:title">
                             <xsl:attribute name="level" select="'j'"/>
