@@ -51,7 +51,7 @@
     </xsl:template>
     
     <!-- mark up numerals in the text of the documents body only -->
-    <xsl:template match="node()[ancestor-or-self::tei:body][not(self::tei:num)]/text()">
+    <xsl:template match="node()[ancestor-or-self::tei:body][not(self::tei:num | self::date)]/text()">
         <xsl:analyze-string select="." regex="(\d+)">
             <xsl:matching-substring>
                 <!-- \d now also matches numbers in Arabic script -->
