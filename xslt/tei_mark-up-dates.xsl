@@ -210,15 +210,26 @@
     </xsl:template>
     
     <!-- add machine-readable data to existing date-nodes -->
-    <xsl:template match="tei:date[@calendar][not(@when-custom)][not(@calendar='#cal_gregorian')]">
+    <xsl:template match="tei:date[@calendar]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(.,@xml:lang,@calendar)"/>
+            <xsl:choose>
+                <!-- if calendar is Gregorian and @when is supplied, nothing should be done -->
+                <xsl:when test="@calendar='#cal_gregorian' and @when!=''"/>
+                <xsl:otherwise>
+                    <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(.,@xml:lang,@calendar)"/>
+                <!-- check if the input can be normalised to ISO format -->
                 <xsl:if test="matches($v_date-normalised, '\d{4}-\d{2}-\d{2}')">
-                    <xsl:attribute name="when-custom" select="$v_date-normalised"/>
-                    <xsl:attribute name="datingMethod" select="@calendar"/>
-                    <xsl:attribute name="when" select="oape:date-convert-calendars($v_date-normalised, @calendar, '#cal_gregorian')"/>
-                    <xsl:choose>
+                    <!-- convert normalised input to gregorian -->
+                    <xsl:variable name="v_date-gregorian" select="oape:date-convert-calendars($v_date-normalised, @calendar, '#cal_gregorian')"/>
+                    <xsl:if test="not(@when-custom) and not(@calendar = '#cal_gregorian')">
+                        <xsl:attribute name="when-custom" select="$v_date-normalised"/>
+                        <xsl:attribute name="datingMethod" select="@calendar"/>
+                    </xsl:if>
+                    <xsl:attribute name="when" select="$v_date-gregorian"/>
+                    <!-- make sure that documentation is only toggled after actual changes -->
+                    <xsl:if test="(not(@when-custom = $v_date-normalised) or not(@when = $v_date-gregorian))">
+                        <xsl:choose>
                         <xsl:when test="@change">
                             <xsl:apply-templates select="@change" mode="m_documentation"/>
                         </xsl:when>
