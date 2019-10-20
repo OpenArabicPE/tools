@@ -53,7 +53,7 @@
             <xsl:value-of select="concat(., ' #', $p_id-change)"/>
         </xsl:attribute>
     </xsl:template>
-    <xsl:template match="tei:text//text()[not(ancestor::tei:date)]">
+    <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]">
         <xsl:variable name="v_preceding-sibling" select="preceding-sibling::node()[1]"/>
         <xsl:variable name="v_preceding-sibling-is-num"
             select="
@@ -73,7 +73,7 @@
                 <xsl:text>Checking text node for dates.</xsl:text>
             </xsl:message>
         </xsl:if>
-        <xsl:analyze-string regex="(\d{{3,4}})(\s*(هـ|م))" select=".">
+        <xsl:analyze-string regex="(\d{{3,4}})(\s*(هـ|هجري|م|ملادي|للمسيح))" select=".">
             <xsl:matching-substring>
                 <xsl:variable name="v_year-iso"
                     select="format-number(number(regex-group(1)), '0000')"/>
@@ -87,13 +87,13 @@
                     <!-- establish the calendar -->
                     <xsl:choose>
                         <!-- the date is Hijrī if we find a trailing 'هـ'  -->
-                        <xsl:when test="regex-group(3) = 'هـ'">
+                        <xsl:when test="regex-group(3) = ('هـ' , 'هجري')">
                             <xsl:attribute name="calendar" select="'#cal_islamic'"/>
                             <xsl:attribute name="datingMethod" select="'#cal_islamic'"/>
                             <xsl:attribute name="when-custom" select="$v_year-iso"/>
                         </xsl:when>
                         <!-- the date is Gregorian if we find a trailing 'م'  -->
-                        <xsl:when test="regex-group(3) = 'م'">
+                        <xsl:when test="regex-group(3) = ('م', 'ملادي', 'للمسيح')">
                             <xsl:attribute name="calendar" select="'#cal_gregorian'"/>
                             <xsl:attribute name="when" select="$v_year-iso"/>
                         </xsl:when>
@@ -104,66 +104,26 @@
                 <xsl:value-of select="regex-group(2)"/>
             </xsl:matching-substring>
             <xsl:non-matching-substring>
-                <xsl:choose>
-                    <!-- check if preceding node is a <num> -->
-                    <xsl:when test="$v_preceding-sibling-is-num = true()">
-                        <xsl:if test="$p_verbose = true()">
+                <xsl:if test="$p_verbose = true()">
                             <xsl:message>
-                                <xsl:text>The preceding sibling is a &lt;num/> node of value </xsl:text>
-                                <xsl:value-of select="$v_preceding-sibling/@value"/>
+                                <xsl:text>No dates found</xsl:text>
                             </xsl:message>
                         </xsl:if>
-                        <!-- check if there are indicators of dates and calendars -->
-                        <xsl:analyze-string regex="^\s*(هـ|م)\W" select=".">
-                            <xsl:matching-substring>
-                                <xsl:variable name="v_year-iso"
-                                    select="format-number($v_preceding-sibling/@value, '0000')"/>
-                                <xsl:element name="tei:date">
-                                    <!-- establish the calendar -->
-                                    <xsl:choose>
-                                        <!-- the date is Hijrī if we find a trailing 'هـ'  -->
-                                        <xsl:when test="regex-group(1) = 'هـ'">
-                                            <xsl:attribute name="calendar" select="'#cal_islamic'"/>
-                                            <xsl:attribute name="datingMethod"
-                                                select="'#cal_islamic'"/>
-                                            <xsl:attribute name="when-custom" select="$v_year-iso"/>
-                                        </xsl:when>
-                                        <!-- the date is Gregorian if we find a trailing 'م'  -->
-                                        <xsl:when test="regex-group(1) = 'م'">
-                                            <xsl:attribute name="calendar" select="'#cal_gregorian'"/>
-                                            <xsl:attribute name="when" select="$v_year-iso"/>
-                                        </xsl:when>
-                                    </xsl:choose>
-                                    <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                                    <xsl:copy-of select="$v_preceding-sibling"/>
-                                </xsl:element>
-                                <xsl:value-of select="."/>
-                            </xsl:matching-substring>
-                            <xsl:non-matching-substring>
-                                <xsl:value-of select="."/>
-                            </xsl:non-matching-substring>
-                        </xsl:analyze-string>
-                    </xsl:when>
-                    <!-- check if following node is a <num> -->
-                    <xsl:when test="$v_following-sibling-is-num = true()">
-                        <xsl:if test="$p_verbose = true()">
-                            <xsl:message>
-                                <xsl:text>The following sibling is a &lt;num/> node of value </xsl:text>
-                                <xsl:value-of select="$v_following-sibling/@value"/>
-                            </xsl:message>
-                        </xsl:if>
-                        <xsl:analyze-string regex="(سنة|عام)\s*$" select=".">
-                            <xsl:matching-substring>
-                                <xsl:if test="$p_verbose = true()">
-                                    <xsl:message>
-                                        <xsl:text>Found indicator of date</xsl:text>
-                                    </xsl:message>
-                                </xsl:if>
-                                <xsl:variable name="v_year-iso"
-                                    select="format-number($v_following-sibling/@value, '0000')"/>
-                                <!-- replicate content -->
-                                <xsl:value-of select="."/>
-                                <!-- add date node -->
+                        <xsl:value-of select="."/>
+            </xsl:non-matching-substring>
+        </xsl:analyze-string>
+    </xsl:template>
+    
+    <xsl:template
+        match="tei:num[not(ancestor::tei:date)][preceding-sibling::text()[1][matches(., '(سنة|عام)\s*$')]]" priority="1">
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message>
+                <xsl:text>Found a *num* node (</xsl:text><xsl:value-of select="@xml:id"/><xsl:text>) following an indicator of a date.</xsl:text>
+            </xsl:message>
+        </xsl:if>
+        <!-- add date node -->
+        <xsl:variable name="v_year-iso"
+                                    select="format-number(@value, '0000')"/>
                                 <xsl:element name="tei:date">
                                     <!-- try to establish if the text provides clues to identify the calendar -->
                                     <xsl:choose>
@@ -175,38 +135,47 @@
                                             <xsl:attribute name="when-custom" select="$v_year-iso"/>
                                         </xsl:when>
                                         <xsl:otherwise>
+                                            <xsl:attribute name="calendar" select="'#cal_gregorian'"/>
                                             <xsl:attribute name="when" select="$v_year-iso"/>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                     <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                                    <xsl:copy-of select="$v_following-sibling"/>
+                                    <xsl:copy-of select="."/>
                                 </xsl:element>
-                            </xsl:matching-substring>
-                            <xsl:non-matching-substring>
-                                <xsl:value-of select="."/>
-                            </xsl:non-matching-substring>
-                        </xsl:analyze-string>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:if test="$p_verbose = true()">
-                            <xsl:message>
-                                <xsl:text>No dates found</xsl:text>
-                            </xsl:message>
-                        </xsl:if>
-                        <xsl:value-of select="."/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:non-matching-substring>
-        </xsl:analyze-string>
     </xsl:template>
-<!--     remove <num>s that have been wrapped in <date> -->
     <xsl:template
-        match="tei:num[not(ancestor::tei:date)][preceding-sibling::text()[1][matches(., '(سنة|عام)\s*$')]] | tei:num[not(ancestor::tei:date)][following-sibling::text()[1][matches(., '^\s*(هـ|م)\W')]]">
+        match="tei:num[not(ancestor::tei:date)][following-sibling::text()[1][matches(., '^\s*(هـ|هجري|م|ملادي|للمسيح)\W')]]" priority="2">
         <xsl:if test="$p_verbose = true()">
             <xsl:message>
-                <xsl:text>Found a num following an indicator of a date.</xsl:text>
+                <xsl:text>Found a *num* node (</xsl:text><xsl:value-of select="@xml:id"/><xsl:text>) preceding an indicator of a date.</xsl:text>
             </xsl:message>
         </xsl:if>
+        <!-- add date node -->
+        <xsl:variable name="v_year-iso"
+                                    select="format-number(@value, '0000')"/>
+                                <xsl:element name="tei:date">
+                                    <!-- establish the calendar -->
+                                    <xsl:analyze-string select="following-sibling::text()[1]" regex="^\s*(هـ|هجري|م|ملادي|للمسيح)\W">
+                                        <xsl:matching-substring>
+                                            <xsl:choose>
+                                        <!-- the date is Hijrī if we find a trailing 'هـ'  -->
+                                        <xsl:when test="regex-group(1) = ('هـ', 'هجري')">
+                                            <xsl:attribute name="calendar" select="'#cal_islamic'"/>
+                                            <xsl:attribute name="datingMethod"
+                                                select="'#cal_islamic'"/>
+                                            <xsl:attribute name="when-custom" select="$v_year-iso"/>
+                                        </xsl:when>
+                                        <!-- the date is Gregorian if we find a trailing 'م'  -->
+                                        <xsl:when test="regex-group(1) = ('م', 'ملادي', 'للمسيح')">
+                                            <xsl:attribute name="calendar" select="'#cal_gregorian'"/>
+                                            <xsl:attribute name="when" select="$v_year-iso"/>
+                                        </xsl:when>
+                                    </xsl:choose>
+                                        </xsl:matching-substring>
+                                    </xsl:analyze-string>
+                                    <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+                                    <xsl:copy-of select="."/>
+                                </xsl:element>
     </xsl:template>
     
     <!-- add machine-readable data to existing date-nodes -->
@@ -237,7 +206,10 @@
                             <xsl:attribute name="change" select="concat('#',$p_id-change)"/>
                         </xsl:otherwise>
                     </xsl:choose>
+                    </xsl:if>
                 </xsl:if>
+                </xsl:otherwise>
+            </xsl:choose>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
