@@ -45,7 +45,7 @@
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="11" as="xs:integer"/>
     <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
-    <xsl:param name="p_periodical" select="'muqtabas'"/>
+    <xsl:param name="p_periodical-id" select="'muqtabas'"/>
     <!--<xsl:variable name="v_oclc">
         <xsl:choose>
             <xsl:when test="lower-case($p_periodical) = 'haqaiq'">
@@ -141,19 +141,25 @@
 <!--    <xsl:variable name="v_journal-title-sakhrit" select="'AL_moqtabs'"/>-->
     <xsl:variable name="v_journal-title-sakhrit">
         <xsl:choose>
-            <xsl:when test="$p_periodical = 'ustadh'">
+            <xsl:when test="$p_periodical-id = 'ustadh'">
                 <xsl:text>AL_ostaz</xsl:text>
             </xsl:when>
-            <xsl:when test="$p_periodical = 'muqtabas'">
+            <xsl:when test="$p_periodical-id = 'muqtabas'">
                 <xsl:text>AL_moqtabs</xsl:text>
             </xsl:when>
-            <xsl:when test="$p_periodical = 'lughat'">
+            <xsl:when test="$p_periodical-id = 'oclc_472450345'">
                 <xsl:text>loghat_el_arab</xsl:text>
+            </xsl:when>
+            <!-- al-Zuhūr: MagazinePages\Magazine_JPG\Al_Zohor\mogalad_1\Issue_01\003.JPG
+                                MagazinePages/Magazine_JPG/Al_Zohor/mogalad_1/Issue_01/003.JPG
+            http://archive.alsharekh.org/MagazinePages/Magazine_JPG/Al_Zohor/mogalad_1/Issue_1/003.jpg-->
+            <xsl:when test="$p_periodical-id = 'oclc_1034545644'">
+                <xsl:text>Al_Zohor</xsl:text>
             </xsl:when>
         </xsl:choose>
     </xsl:variable>
     <xsl:param name="p_year-sakhrit" select="'1906'"/>
-    <xsl:variable name="v_url-sakhrit" select="concat($v_url-sakhrit-base,$v_journal-title-sakhrit,'/',$v_journal-title-sakhrit,'_',$p_year-sakhrit,'/Issue_',$v_issue,'/')"/>    
+    <xsl:variable name="v_url-sakhrit" select="concat($v_url-sakhrit-base,$v_journal-title-sakhrit,'/',$v_journal-title-sakhrit,'_',$p_year-sakhrit,'/Issue_',format-number($v_issue,'00'),'/')"/>    
     
     
     
