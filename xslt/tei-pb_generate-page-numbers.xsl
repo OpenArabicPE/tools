@@ -62,38 +62,32 @@
         <!--        <xsl:variable name="v_page-first" select="if(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) then(ancestor::tei:text/descendant::tei:pb[not(@ed='shamela')][@n!=''][1]/@n) else(ancestor::tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct//tei:biblScope[@unit='page']/@from)"/>-->
         <xsl:variable name="v_page-first"
             select="$v_sourceDesc/tei:biblStruct//tei:biblScope[@unit = 'page']/@from"/>
+        <xsl:variable name="v_page-number"
+            select="count(preceding::tei:pb[not(@ed = 'shamela')]) + $v_page-first"/>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <!-- add documentation of change -->
-            <xsl:choose>
-            <xsl:when test="not(@change)">
-                <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-            </xsl:when>
-                <xsl:otherwise>
-                    <xsl:attribute name="change">
-            <xsl:value-of select="concat(@change, ' #', $p_id-change)"/>
-        </xsl:attribute>
-                </xsl:otherwise>
-            </xsl:choose>
+            <!-- check if the page number is already present and correct -->
+            <xsl:if test="not(@n) or not(@n = $v_page-number)">
+                <xsl:attribute name="n">
+                    <xsl:value-of select="$v_page-number"/>
+                </xsl:attribute>
+                <!-- add documentation of change -->
+                <xsl:choose>
+                    <xsl:when test="not(@change)">
+                        <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:attribute name="change">
+                            <xsl:value-of select="concat(@change, ' #', $p_id-change)"/>
+                        </xsl:attribute>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:if>
             <xsl:attribute name="ed">
                 <xsl:text>print</xsl:text>
             </xsl:attribute>
             <!-- add reference to the standard @xml:id of the first edition -->
             <xsl:attribute name="edRef" select="$p_id-print-edition"/>
-            <xsl:attribute name="n">
-                <xsl:value-of
-                    select="count(preceding::tei:pb[not(@ed = 'shamela')]) + $v_page-first"/>
-            </xsl:attribute>
-            <!--<xsl:choose>
-                <xsl:when test="not(@n)">
-                    <xsl:attribute name="n">
-                        <xsl:value-of select="count(preceding::tei:pb[not(@ed = 'shamela')]) + $v_page-first"/>
-                    </xsl:attribute>
-                </xsl:when>
-                <xsl:otherwise>
-                    <xsl:apply-templates select="@n"/>
-                </xsl:otherwise>
-            </xsl:choose>-->
         </xsl:copy>
     </xsl:template>
 </xsl:stylesheet>
