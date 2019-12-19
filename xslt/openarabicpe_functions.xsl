@@ -279,4 +279,26 @@
             <xsl:text> </xsl:text>
         </xsl:for-each>
     </xsl:template>
+    <!--<!-\- function to get the author(s) of a div -\->
+    <xsl:function name="oape:get-author-from-div">
+        <xsl:param name="p_input"/>
+         <xsl:choose>
+                        <xsl:when test="$p_input/child::tei:byline/descendant::tei:persName[not(ancestor::tei:note)]">
+                            <xsl:copy-of select="$p_input/child::tei:byline/descendant::tei:persName[not(ancestor::tei:note)]"/>
+                        </xsl:when>
+             <xsl:when test="$p_input/child::tei:byline/descendant::tei:orgName[not(ancestor::tei:note)]">
+                            <xsl:copy-of select="$p_input/child::tei:byline/descendant::tei:orgName[not(ancestor::tei:note)]"/>
+                        </xsl:when>
+                        <xsl:when test="$p_input/descendant::tei:note[@type = 'bibliographic']/tei:bibl/tei:author">
+                            <xsl:copy-of select="$p_input/descendant::tei:note[@type = 'bibliographic']/tei:bibl/tei:author/descendant::tei:persName"/>
+                        </xsl:when>
+                        <xsl:when test="$p_input/descendant::tei:note[@type = 'bibliographic']/tei:bibl/tei:title[@level = 'j']">
+                            <xsl:copy-of select="$p_input/descendant::tei:note[@type = 'bibliographic']/tei:bibl/tei:title[@level = 'j']"/>
+                        </xsl:when>
+             <!-\- fallback: NA -\->
+             <xsl:otherwise>
+                 <xsl:text>NA</xsl:text>
+             </xsl:otherwise>
+                    </xsl:choose>
+    </xsl:function>-->
 </xsl:stylesheet>
