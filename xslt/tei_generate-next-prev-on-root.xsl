@@ -20,39 +20,62 @@
             select="$v_bibl-source/tei:monogr/tei:biblScope[@unit = 'issue']/@from"/>
         <xsl:variable name="v_oclc"
             select="concat('oclc_', $v_bibl-source/tei:monogr/tei:idno[@type = 'OCLC'][1])"/>
+        <xsl:variable name="v_base-path" select="replace(base-uri(.),'^(.+/)[^/]+$','$1')"/>
         <xsl:variable name="v_file-name" select="number(replace(base-uri(),'.+-i_(\d+).+$','$1'))"/>
         <xsl:variable name="v_file-extension" select="'.TEIP5.xml'"/>
+        <!-- the following file -->
+        <xsl:variable name="v_url-following">
+            <xsl:choose>
+                <!-- increase issue by one and check if the file exists-->
+                <xsl:when test="doc-available(concat($v_base-path, $v_oclc, '-v_', $v_volume, '-i_', $v_issue + 1, $v_file-extension))">
+                    <xsl:value-of select="concat($v_oclc, '-v_', $v_volume, '-i_', $v_issue + 1, $v_file-extension)"/>
+                </xsl:when>
+                <!-- increase volume by one, set the issue to 1 and check if the file exists-->
+                <xsl:when test="doc-available(concat($v_base-path, $v_oclc, '-v_', $v_volume + 1, '-i_1', $v_file-extension))">
+                    <xsl:value-of select="concat($v_oclc, '-v_', $v_volume + 1, '-i_1', $v_file-extension)"/>
+                </xsl:when>
+                <!-- fallback -->
+                <xsl:otherwise>
+                    <xsl:message>
+                        <xsl:text>Next file not found</xsl:text>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <!-- the previous file -->
+        <xsl:variable name="v_url-previous">
+            <xsl:choose>
+                <!-- first issue of the first volume: no previous file -->
+                <xsl:when test="$v_volume = 1 and $v_issue = 1"/>
+                <!-- decrease issue by one and check if the file exists-->
+                <xsl:when test="doc-available(concat($v_base-path, $v_oclc, '-v_', $v_volume, '-i_', $v_issue - 1, $v_file-extension))">
+                    <xsl:value-of select="concat($v_oclc, '-v_', $v_volume, '-i_', $v_issue - 1, $v_file-extension)"/>
+                </xsl:when>
+                <!-- problem: find the last issue of the previous volume -->
+                <!-- cheap solution: assume 12 issues -->
+                <xsl:when test="doc-available(concat($v_base-path, $v_oclc, '-v_', $v_volume - 1, '-i_12', $v_file-extension))">
+                    <xsl:value-of select="concat($v_oclc, '-v_', $v_volume - 1, '-i_12', $v_file-extension)"/>
+                </xsl:when>
+                <!-- fallback -->
+                <xsl:otherwise>
+                    <xsl:message>
+                        <xsl:text>Previous file not found</xsl:text>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:choose>
                 <xsl:when test="$p_consecutive-file-names = false()">
-                    <xsl:attribute name="next">
-                        <xsl:choose>
-                            <xsl:when test="$v_issue = 12">
-                                <xsl:value-of
-                                    select="concat($v_oclc, '-v_', $v_volume + 1, '-i_1', $v_file-extension)"
-                                />
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:value-of
-                                    select="concat($v_oclc, '-v_', $v_volume, '-i_', $v_issue + 1, $v_file-extension)"
-                                />
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:attribute>
-                    <xsl:choose>
-                        <xsl:when test="$v_volume = 1 and $v_issue = 1"/>
-                        <xsl:when test="$v_issue = 1">
-                            <xsl:attribute name="prev"
-                                select="concat($v_oclc, '-v_', $v_volume - 1, '-i_', $v_issue - 1, $v_file-extension)"
-                            />
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:attribute name="prev"
-                                select="concat($v_oclc, '-v_', $v_volume, '-i_', $v_issue - 1, $v_file-extension)"
-                            />
-                        </xsl:otherwise>
-                    </xsl:choose>
+                    <!-- following file -->
+                    <xsl:if test="$v_url-following != ''">
+                        <xsl:attribute name="next" select="$v_url-following"/>
+                    </xsl:if>
+                    <!-- previous file -->
+                    <xsl:if test="$v_url-previous != ''">
+                        <xsl:attribute name="prev" select="$v_url-previous"/>
+                    </xsl:if>
                 </xsl:when>
                 <xsl:when test="$p_consecutive-file-names = true()">
                     <xsl:attribute name="next"
