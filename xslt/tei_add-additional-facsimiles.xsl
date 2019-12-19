@@ -28,9 +28,9 @@
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
     <!-- params to toggle certain links -->
-    <xsl:param name="p_file-local" select="true()"/>
+    <xsl:param name="p_file-local" select="false()"/>
     <xsl:param name="p_file-hathi" select="false()"/>
-    <xsl:param name="p_file-eap" select="false()"/>
+    <xsl:param name="p_file-eap" select="true()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
     
     <xsl:param name="p_generate-pbs" select="false()"/>
@@ -40,14 +40,15 @@
     <!-- set-off between HathiTrust image numbers and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_hathi" select="28" as="xs:integer"/>
     <!-- set-off between EAP image number and the printed edition; default is 0 -->
-    <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
+    <xsl:param name="p_image-setoff_eap" select="5" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="0" as="xs:integer"/>
     
     <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
     <!-- volume in EAP collection: needs to be set  -->
-    <xsl:variable name="v_publication_eap" select="4" as="xs:integer"/>
+    <xsl:variable name="v_eap-id" select="$v_biblStructSource/descendant::tei:idno[@type='callNumber'][starts-with(.,'EAP')]"/>
+    <xsl:variable name="v_publication_eap" select="8" as="xs:integer"/>
     <xsl:param name="p_volume-setoff_eap" select="-1" as="xs:integer"/>
     <!-- EAP moved on to IIIF in late 2017 -->
     <xsl:variable name="v_iiif-scheme" select="'https://'"/>
@@ -164,7 +165,6 @@
     <!-- prefix for the @xml:id of all facsimiles -->
     <xsl:variable name="v_id-facs" select="'facs_'"/>
     
-  
     <!-- identity transform -->
     <xsl:template match="@* | node()">
         <xsl:copy>
@@ -182,10 +182,20 @@
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat(@xml:id, '-g_', $v_graphic)"/>
                 <xsl:attribute name="change" select="concat('#',$p_id-change)"></xsl:attribute>
-                <xsl:if test="$p_file-local = true()">
-                    <xsl:attribute name="url" select="concat($v_path-file,format-number($v_page + $p_image-setoff_local,'000'),'.tif')"/>
-                    <xsl:attribute name="mimeType" select="'image/tiff'"/>
-                </xsl:if>
+                <!-- local facsimile -->
+                <xsl:choose>
+                    <xsl:when test="$p_file-local = true()">
+                        <xsl:attribute name="url" select="concat($v_path-file,format-number($v_page + $p_image-setoff_local,'000'),'.tif')"/>
+                        <xsl:attribute name="mimeType" select="'image/tiff'"/>
+                    </xsl:when>
+                    <!-- link to EAP119 -->
+                    <xsl:when test="$p_file-eap = true()">
+                <!-- new url pointing to IIIF manifest -->
+                        <xsl:attribute name="url" select="concat($v_iiif-scheme,$v_iiif-server,$v_iiif-prefix,'/', replace($v_eap-id,'/','_'),'/',$v_page + $p_image-setoff_eap,'.jp2')"/>
+                        <xsl:attribute name="mimeType" select="'image/jpeg'"/>
+                        <xsl:attribute name="type" select="'iiif'"/>
+                    </xsl:when>
+                </xsl:choose>
             </xsl:element>
         </xsl:copy>
     </xsl:template>
@@ -200,13 +210,13 @@
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:attribute name="xml:lang" select="'en'"></xsl:attribute>
-                <xsl:text>Added </xsl:text><tei:gi>graphic</tei:gi><xsl:text> for all pages linking to local facsimiles.</xsl:text>
+                <xsl:text>Added </xsl:text><tei:gi>graphic</tei:gi><xsl:text> for all pages linking to EAP.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     
-    <!-- generate the facsimile -->
+    <!-- generate the facsimile: this is not used -->
     <xsl:template name="t_generate-facsimile">
         <xsl:param name="p_page-start" select="1"/>
         <xsl:param name="p_page-stop" select="20"/>
