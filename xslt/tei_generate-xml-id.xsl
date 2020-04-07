@@ -1,4 +1,4 @@
-<xsl:stylesheet exclude-result-prefixes="xs xd html" version="2.0"
+<xsl:stylesheet exclude-result-prefixes="xs xd html" version="3.0"
     xmlns="http://www.tei-c.org/ns/1.0" xmlns:html="http://www.w3.org/1999/xhtml"
     xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xd="http://www.pnp-software.com/XSLTdoc"
     xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
