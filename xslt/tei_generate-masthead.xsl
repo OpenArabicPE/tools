@@ -187,6 +187,15 @@
         <xsl:variable name="v_date-islamic" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_islamic'),'#cal_islamic', true(), false(),'ar')"/>
         <xsl:variable name="v_date-julian" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_julian'),'#cal_julian', true(), false(),'ar')"/>
         <xsl:variable name="v_date-coptic" select="oape:date-format-iso-string-to-tei(oape:date-convert-calendars($v_date,'#cal_gregorian','#cal_coptic'),'#cal_coptic', true(), false(),'ar')"/>
+        <!-- debugging -->
+        <xsl:if test="$p_verbose = true()">
+            <xsl:message>
+                <xsl:copy-of select="$v_date"/>
+                <xsl:copy-of select="$v_date-gregorian"/>
+                <xsl:copy-of select="$v_date-julian"/>
+                <xsl:copy-of select="$v_date-islamic"/>
+            </xsl:message>
+        </xsl:if>
         <!-- content -->
             <!-- add a masthead -->
             <xsl:element name="tei:div">
@@ -225,8 +234,15 @@
                             <!-- here follows the date line -->
                             <lb/>
                             <xsl:copy-of select="$v_date-islamic"/>
-                            <xsl:text> موافق </xsl:text>
-                            <xsl:copy-of select="$v_date-julian"/>
+                            <xsl:text> الموافق </xsl:text>
+                            <xsl:choose>
+                                <xsl:when test="$v_biblSource/descendant::tei:pubPlace/tei:placeName = 'Cairo'">
+                                    <xsl:copy-of select="$v_date-gregorian"/>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <xsl:copy-of select="$v_date-julian"/>
+                                </xsl:otherwise>
+                            </xsl:choose>
                         </xsl:when>
                         <!-- al-Ustādh -->
                         <xsl:when test="$v_biblSource//tei:idno[@type='OCLC'] = '1036721166'">
