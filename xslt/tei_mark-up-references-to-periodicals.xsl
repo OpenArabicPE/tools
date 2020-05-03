@@ -11,7 +11,6 @@
     <!-- this stylesheet wraps references to periodical titles that start with *jarīda* or *majalla* in a <bibl> and <title> tag  -->
 
     <!-- identify the author of the change by means of a @xml:id -->
-    <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- reproduce everything as is -->
     <xsl:template match="@* | node()">
@@ -65,6 +64,7 @@
                     </xsl:when>
                 </xsl:choose>
             </xsl:attribute>
+            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
             <xsl:value-of select="$p_prefix"/>
             <!-- title -->
             <xsl:element name="title">
