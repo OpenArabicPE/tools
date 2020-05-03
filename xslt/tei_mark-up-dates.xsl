@@ -14,7 +14,7 @@
         version="1.0"/>
     <!-- include dating functions -->
     <!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
-    <xsl:include href="/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/date-function.xsl"/>
+    <xsl:include href="/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
     <!-- identify the author of the change by means of a @xml:id -->
     <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
