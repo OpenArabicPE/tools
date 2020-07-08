@@ -16,7 +16,7 @@
         </xd:desc>
     </xd:doc>
     
-    <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
+    <xsl:output encoding="UTF-8" indent="yes" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     
     <xsl:param name="p_id-editor" select="'pers_TG'"/>
     
@@ -54,6 +54,7 @@
             <xsl:apply-templates select="tei:idno"/>
             <xsl:apply-templates select="tei:author"/>
             <xsl:apply-templates select="tei:editor"/>
+            <xsl:apply-templates select="tei:textLang"/>
             <xsl:apply-templates select="tei:imprint"/>
             <xsl:apply-templates select="tei:biblScope"/>
         </xsl:copy>
