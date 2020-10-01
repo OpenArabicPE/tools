@@ -15,12 +15,19 @@
     <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهاويوي٠١٢٣٤٥٦٧٨٩'"/>
     
     <!-- testing: -->
-    <!--<xsl:template match="/">
+   <!-- <xsl:template match="/">
         <xsl:apply-templates/>
     </xsl:template>
-    <xsl:template match="node()[@xml:lang = 'ar-Latn-x-ijmes']">
+    <xsl:template match="node()[@xml:lang = 'ar-Latn-x-ijmes'] | tei:persName | tei:name">
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
             <xsl:copy-of select="oape:string-transliterate-ijmes-to-arabic(.)"/>
+        </xsl:copy>
+    </xsl:template>
+    <!-\- identity transform -\->
+    <xsl:template match="node() | @*">
+        <xsl:copy>
+            <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>-->
     
