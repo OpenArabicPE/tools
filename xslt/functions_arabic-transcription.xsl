@@ -11,15 +11,11 @@
     
     <!-- the templates assume the IJMES system of transcription -->
     
-    <!-- Issues:
-        1. sequences of more than one Latin consonant: i.e. kht in ikhtlāf or dhdh in kadhdhāb
-         -->
-    
     <xsl:variable name="v_string-transcribe-ijmes-from" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāūīwy0123456789'"/>
     <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهاويوي٠١٢٣٤٥٦٧٨٩'"/>
     
     <!-- testing: -->
-<!--    <xsl:template match="/">
+    <!--<xsl:template match="/">
         <xsl:apply-templates/>
     </xsl:template>
     <xsl:template match="node()[@xml:lang = 'ar-Latn-x-ijmes']">
