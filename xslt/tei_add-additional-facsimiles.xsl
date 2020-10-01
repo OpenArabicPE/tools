@@ -5,8 +5,6 @@
     xmlns:xs="http://www.w3.org/2001/XMLSchema" 
     xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xd="http://www.pnp-software.com/XSLTdoc"
-    xmlns="http://www.tei-c.org/ns/1.0"
-    xpath-default-namespace="http://www.tei-c.org/ns/1.0"
     exclude-result-prefixes="xs xd html"
     version="3.0">
     
@@ -30,8 +28,9 @@
     <!-- params to toggle certain links -->
     <xsl:param name="p_file-local" select="false()"/>
     <xsl:param name="p_file-hathi" select="false()"/>
-    <xsl:param name="p_file-eap" select="true()"/>
+    <xsl:param name="p_file-eap" select="false()"/>
     <xsl:param name="p_file-sakhrit" select="false()"/>
+    <xsl:param name="p_file-translatio" select="true()"/>
     
     <xsl:param name="p_generate-pbs" select="false()"/>
     
@@ -43,6 +42,9 @@
     <xsl:param name="p_image-setoff_eap" select="5" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="0" as="xs:integer"/>
+    <!--  first page of a volume on Translation Bonn -->
+    <xsl:param name="p_translatio-volume-id" select="'4900431'"/>
+    
     
     <!-- volume in HathTrust collection: needs to be set -->
     <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
@@ -50,10 +52,15 @@
     <xsl:variable name="v_eap-id" select="$v_biblStructSource/descendant::tei:idno[@type='callNumber'][starts-with(.,'EAP')]"/>
     <xsl:variable name="v_publication_eap" select="8" as="xs:integer"/>
     <xsl:param name="p_volume-setoff_eap" select="-1" as="xs:integer"/>
+    <!-- IIIF -->
+    <xsl:variable name="v_iiif-settings-max" select="'/full/2000,/0/default.jpg'"/>
     <!-- EAP moved on to IIIF in late 2017 -->
-    <xsl:variable name="v_iiif-scheme" select="'https://'"/>
-    <xsl:variable name="v_iiif-server" select="'images.eap.bl.uk'"/>
-    <xsl:variable name="v_iiif-prefix" select="'/EAP119'"/>
+    <xsl:variable name="v_eap-iiif-scheme" select="'https://'"/>
+    <xsl:variable name="v_eap-iiif-server" select="'images.eap.bl.uk'"/>
+    <xsl:variable name="v_eap-iiif-prefix" select="'/EAP119'"/>
+    <!-- translatio Bonn -->
+    <xsl:variable name="v_translatio-iiif-scheme-server-prefix" select="'https://digitale-sammlungen.ulb.uni-bonn.de/i3f/v20'"/>
+    <xsl:variable name="v_translatio-volume-contents" select="document(concat($v_translatio-iiif-scheme-server-prefix, '/', $p_translatio-volume-id,'?xml'))"/>
     
     <!-- variables based on the input file -->
     <!-- select the first edition by default -->
@@ -177,8 +184,19 @@
             <xsl:apply-templates select="@* | node()"/>
             <!-- add new facsimile for this page -->
             <!-- assume that the sequence of surface children of facsimile follow the sequence of pages. Figure out which page we are at-->
-            <xsl:variable name="v_page" select="count(preceding-sibling::tei:surface) + $v_page-start"/>
+            <xsl:variable name="v_page" select="count(preceding-sibling::tei:surface) + $v_page-start">
+               <!-- <xsl:choose>
+                    <xsl:when test="$p_file-translatio = true()">
+                        <xsl:value-of select="$p_first-page-of-volume_translatio -1 + $v_page-start + count(preceding-sibling::tei:surface)"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="count(preceding-sibling::tei:surface) + $v_page-start"/>
+                    </xsl:otherwise>
+                </xsl:choose>-->
+            </xsl:variable>
             <xsl:variable name="v_graphic" select="count(tei:graphic) + 3"/>
+            <xsl:variable name="v_xml-id" select="@xml:id"/>
+            <xsl:variable name="v_corresponding-pb-n" select="ancestor::tei:TEI/descendant::tei:pb[@facs = concat('#', $v_xml-id)]/@n"/>
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat(@xml:id, '-g_', $v_graphic)"/>
                 <xsl:attribute name="change" select="concat('#',$p_id-change)"></xsl:attribute>
@@ -191,7 +209,15 @@
                     <!-- link to EAP119 -->
                     <xsl:when test="$p_file-eap = true()">
                 <!-- new url pointing to IIIF manifest -->
-                        <xsl:attribute name="url" select="concat($v_iiif-scheme,$v_iiif-server,$v_iiif-prefix,'/', replace($v_eap-id,'/','_'),'/',$v_page + $p_image-setoff_eap,'.jp2')"/>
+                        <xsl:attribute name="url" select="concat($v_eap-iiif-scheme,$v_eap-iiif-server, $v_eap-iiif-prefix,'/', replace($v_eap-id,'/','_'),'/',$v_page + $p_image-setoff_eap,'.jp2', $v_iiif-settings-max)"/>
+                        <xsl:attribute name="mimeType" select="'image/jpeg'"/>
+                        <xsl:attribute name="type" select="'iiif'"/>
+                    </xsl:when>
+                    <xsl:when test="$p_file-translatio = true()">
+                        <!-- find the image ID in the XML  -->
+                        <xsl:variable name="v_image-id" select="$v_translatio-volume-contents/descendant::row[@ot_caption = concat('Seite ', $v_corresponding-pb-n)]/@ot_id"/>
+                <!-- new url pointing to IIIF manifest -->
+                        <xsl:attribute name="url" select="concat( $v_translatio-iiif-scheme-server-prefix,'/', $v_image-id, $v_iiif-settings-max)"/>
                         <xsl:attribute name="mimeType" select="'image/jpeg'"/>
                         <xsl:attribute name="type" select="'iiif'"/>
                     </xsl:when>
@@ -209,8 +235,20 @@
                 <xsl:attribute name="when" select="format-date(current-date(),'[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#',$p_id-editor)"/>
                 <xsl:attribute name="xml:id" select="$p_id-change"/>
-                <xsl:attribute name="xml:lang" select="'en'"></xsl:attribute>
-                <xsl:text>Added </xsl:text><tei:gi>graphic</tei:gi><xsl:text> for all pages linking to EAP.</xsl:text>
+                <xsl:attribute name="xml:lang" select="'en'"/>
+                <xsl:text>Added </xsl:text><tei:gi>graphic</tei:gi><xsl:text> for all pages linking to </xsl:text>
+              
+                    <xsl:if test="$p_file-eap">
+                        <xsl:text>EAP</xsl:text>
+                    </xsl:if>
+                    <xsl:if test="$p_file-hathi">
+                        <xsl:text>HathiTrust</xsl:text>
+                    </xsl:if>
+                <xsl:if test="$p_file-translatio">
+                        <xsl:text>Translatio Bonn</xsl:text>
+                    </xsl:if>
+                
+                <xsl:text>.</xsl:text>
             </xsl:element>
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
@@ -252,7 +290,7 @@
                 <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_4')"/>
 <!--                <xsl:attribute name="url" select="concat($vFileUrlEap,'_',format-number($p_page-start + $p_image-setoff_eap,'000'),'_L.jpg')"/>-->
                 <!-- new url pointing to IIIF manifest -->
-                <xsl:attribute name="url" select="concat($v_iiif-scheme,$v_iiif-server,$v_iiif-prefix,'/EAP119_1_',$v_publication_eap,'_',$v_volume + $p_volume-setoff_eap,'/',$p_page-start + $p_image-setoff_eap,'.jp2')"/>
+                <xsl:attribute name="url" select="concat($v_eap-iiif-scheme,$v_eap-iiif-server,$v_eap-iiif-prefix,'/EAP119_1_',$v_publication_eap,'_',$v_volume + $p_volume-setoff_eap,'/',$p_page-start + $p_image-setoff_eap,'.jp2')"/>
                 <xsl:attribute name="mimeType" select="'image/jpeg'"/>
                 <xsl:attribute name="type" select="'iiif'"/>
             </xsl:element>
