@@ -44,7 +44,7 @@
     <xsl:param name="p_image-setoff_eap" select="0" as="xs:integer"/>
     <!-- set-off between local image number and the printed edition; default is 0 -->
     <xsl:param name="p_image-setoff_local" select="11" as="xs:integer"/>
-    <!-- parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
+    <!-- Only relevant if facsimiles come from sakhrit: parameter to select the periodical, current values are 'haqaiq' or 'muqtabas' -->
     <xsl:param name="p_periodical-id" select="'muqtabas'"/>
     <!--<xsl:variable name="v_oclc">
         <xsl:choose>
