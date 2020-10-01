@@ -16,7 +16,6 @@
     <!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
     <xsl:include href="/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
     <!-- identify the author of the change by means of a @xml:id -->
-    <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- this param defines a threshold under which no tei:num/@value will be wrapped in tei:date -->
     <xsl:param name="p_treshold" select="100"/>
@@ -53,6 +52,7 @@
             <xsl:value-of select="concat(., ' #', $p_id-change)"/>
         </xsl:attribute>
     </xsl:template>
+    
     <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]">
         <xsl:variable name="v_preceding-sibling" select="preceding-sibling::node()[1]"/>
         <xsl:variable name="v_preceding-sibling-is-num"
@@ -75,8 +75,10 @@
         </xsl:if>
         <xsl:analyze-string regex="(\d{{3,4}})(\s*(هـ|هجري|م|ملادي|للمسيح))" select=".">
             <xsl:matching-substring>
+                <!-- it is necessary to translate Arabic numerals -->
+                <xsl:variable name="v_year" select="translate(regex-group(1), $v_string-digits-ar, $v_string-digits-latn)"/>
                 <xsl:variable name="v_year-iso"
-                    select="format-number(number(regex-group(1)), '0000')"/>
+                    select="format-number(number($v_year), '0000')"/>
                 <xsl:if test="$p_verbose = true()">
                     <xsl:message>
                         <xsl:text>Found a date string: </xsl:text>
@@ -180,15 +182,16 @@
     
     <!-- add machine-readable data to existing date-nodes -->
     <xsl:template match="tei:date[@calendar]">
+        <xsl:variable name="v_lang" select="if(@xml:lang) then(@xml:lang) else(ancestor::note[@xml:lang][1]/@xml:lang)"/>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:choose>
                 <!-- if calendar is Gregorian and @when is supplied, nothing should be done -->
                 <xsl:when test="@calendar='#cal_gregorian' and @when!=''"/>
                 <xsl:otherwise>
-                    <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(.,@xml:lang,@calendar)"/>
+                    <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(., $v_lang, @calendar)"/>
                 <!-- check if the input can be normalised to ISO format -->
-                <xsl:if test="matches($v_date-normalised, '\d{4}-\d{2}-\d{2}')">
+                <xsl:if test="matches($v_date-normalised, '^\d{4}-\d{2}-\d{2}$')">
                     <!-- convert normalised input to gregorian -->
                     <xsl:variable name="v_date-gregorian" select="oape:date-convert-calendars($v_date-normalised, @calendar, '#cal_gregorian')"/>
                     <xsl:if test="not(@when-custom) and not(@calendar = '#cal_gregorian')">
