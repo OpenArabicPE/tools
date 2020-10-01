@@ -18,41 +18,38 @@
     <xsl:variable name="v_string-transcribe-ijmes-from" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāūīwy0123456789'"/>
     <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهاويوي٠١٢٣٤٥٦٧٨٩'"/>
     
+    <!-- testing: -->
+<!--    <xsl:template match="/">
+        <xsl:apply-templates/>
+    </xsl:template>
+    <xsl:template match="node()[@xml:lang = 'ar-Latn-x-ijmes']">
+        <xsl:copy>
+            <xsl:copy-of select="oape:string-transliterate-ijmes-to-arabic(.)"/>
+        </xsl:copy>
+    </xsl:template>-->
+    
     <xsl:function name="oape:string-transliterate-ijmes-to-arabic">
-        <xsl:param name="pInput" as="xs:string"/>
-        <!--<xsl:message>
-            <xsl:value-of select="$pInput"/>
-        </xsl:message>-->
-        <xsl:variable name="vTokens">
-            <xsl:call-template name="funcStringTokenize">
-                <xsl:with-param name="pInput" select="$pInput"/>
-            </xsl:call-template>
-        </xsl:variable>
-        <xsl:for-each select="$vTokens/child::node()">
+        <xsl:param name="p_input" as="xs:string"/>
+        <xsl:variable name="v_tokenized" select="oape:string-mark-up-tokens($p_input)"/>
+        <xsl:for-each select="$v_tokenized/self::node()">
             <xsl:choose>
                 <xsl:when test="self::tei:w">
-                    <xsl:variable name="vWord">
+                    <xsl:variable name="v_word">
                         <xsl:call-template name="funcStringArabicArticleGender">
-                            <xsl:with-param name="pInput" select="."/>
+                            <xsl:with-param name="p_input" select="."/>
                         </xsl:call-template>
                     </xsl:variable>
-                    <xsl:choose>
-                        <!-- reassemble all words from right to left  -->
-                        <xsl:when test="$vWord//tei:c[@xml:lang='ar']">
+                     <!-- reassemble all words from right to left  -->
+                     <xsl:if test="$v_word/descendant-or-self::tei:c[@xml:lang='ar']">
                             <xsl:message>
                                 <xsl:text>Assemble word: </xsl:text>
-                                <xsl:value-of select="$vWord"/>
+                                <xsl:value-of select="$v_word"/>
                             </xsl:message>
                             <xsl:element name="tei:w">
                                 <xsl:attribute name="xml:lang" select="'ar'"/>
-                                <!--<xsl:for-each select="$vWord//tei:c">
-                        <xsl:sort order="ascending" select="position()"/>
-                        <xsl:value-of select="."/>
-                    </xsl:for-each>-->
-                                <xsl:value-of select="$vWord"/>
+                                <xsl:value-of select="$v_word"/>
                             </xsl:element>
-                        </xsl:when>
-                    </xsl:choose>
+                        </xsl:if>
                 </xsl:when>
                 <xsl:otherwise>
                     <xsl:copy-of select="."/>
@@ -62,8 +59,8 @@
     </xsl:function>
     
     <xsl:template name="funcStringArabicArticleGender">
-        <xsl:param name="pInput"/>
-        <xsl:analyze-string regex="(\w+)\-(\w+)" select="lower-case($pInput)">
+        <xsl:param name="p_input" as="xs:string"/>
+        <xsl:analyze-string regex="(\w+)\-(\w+)" select="lower-case($p_input)">
             <xsl:matching-substring>
                 <xsl:message>
                     <xsl:text>determined article</xsl:text>
@@ -87,9 +84,10 @@
                     <xsl:value-of select="regex-group(2)"/>
                 </xsl:message>
                 <!-- Problem: if we loop the input through funcStringTranscribeIjmesToArabic, it is lost somewhere down the line -->
-                <xsl:call-template name="funcStringArabicArticleGender">
-                    <xsl:with-param name="pInput" select="regex-group(2)"/>
-                </xsl:call-template>
+                <xsl:copy-of select="oape:string-transliterate-ijmes-to-arabic(regex-group(2))"/>
+                <!--<xsl:call-template name="funcStringArabicArticleGender">
+                    <xsl:with-param name="p_input" select="regex-group(2)"/>
+                </xsl:call-template>-->
             </xsl:matching-substring>
             <xsl:non-matching-substring>
                 <!-- tāʾ marbūṭa should be dealt with here. I presume there is no word of two letters ending with it -->
@@ -99,7 +97,7 @@
                             <xsl:text>word ends in tāʾ marbūṭa</xsl:text>
                         </xsl:message>
                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                            <xsl:with-param name="pInput" select="substring(.,1,string-length(.)-1)"/>
+                            <xsl:with-param name="p_input" select="substring(.,1,string-length(.)-1)"/>
                         </xsl:call-template>
                         <xsl:element name="tei:c">
                             <xsl:attribute name="xml:lang" select="'ar'"/>
@@ -108,7 +106,7 @@
                     </xsl:matching-substring>
                     <xsl:non-matching-substring>
                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                            <xsl:with-param name="pInput" select="."/>
+                            <xsl:with-param name="p_input" select="."/>
                         </xsl:call-template>
                     </xsl:non-matching-substring>
                 </xsl:analyze-string>
@@ -118,46 +116,46 @@
     
     <!-- this template takes individual words as input and splits them into syllables / radicals -->
     <xsl:template name="funcStringArabicSplitRadicals">
-        <xsl:param name="pInput"/>
+        <xsl:param name="p_input"/>
         <xsl:message>
             <xsl:text>Input funcStringArabicSplitRadicals: </xsl:text>
-            <xsl:value-of select="$pInput"/>
+            <xsl:value-of select="$p_input"/>
         </xsl:message>
         <!-- starting hamza -->
         <xsl:choose>
-            <xsl:when test="starts-with($pInput,'i')">
+            <xsl:when test="starts-with($p_input,'i')">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ا</xsl:text>
                 </xsl:element>
                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                    <xsl:with-param name="pInput" select="substring($pInput,2)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,2)"/>
                 </xsl:call-template>
             </xsl:when>
-            <xsl:when test="starts-with($pInput,'a')">
+            <xsl:when test="starts-with($p_input,'a')">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ا</xsl:text>
                 </xsl:element>
                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                    <xsl:with-param name="pInput" select="substring($pInput,2)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,2)"/>
                 </xsl:call-template>
             </xsl:when>
-            <xsl:when test="starts-with($pInput,'u')">
+            <xsl:when test="starts-with($p_input,'u')">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ا</xsl:text>
                 </xsl:element>
                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                    <xsl:with-param name="pInput" select="substring($pInput,2)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,2)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- hamza in the middle or at the end of a word -->
-            <xsl:when test="contains($pInput,'ʾ')">
+            <xsl:when test="contains($p_input,'ʾ')">
                 <xsl:message>
                     <xsl:text>string contains hamza</xsl:text>
                 </xsl:message>
-                <xsl:analyze-string select="$pInput" regex="(\w*)ʾ(\w*)">
+                <xsl:analyze-string select="$p_input" regex="(\w*)ʾ(\w*)">
                     <xsl:matching-substring>
                         <xsl:variable name="vPrecedingStringLength" select="string-length(regex-group(1))"/>
                         <xsl:variable name="vPrecedingString" select="regex-group(1)"/>
@@ -178,7 +176,7 @@
                                     <xsl:text>trailing hamza</xsl:text>
                                 </xsl:message>
                                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                                    <xsl:with-param name="pInput" select="$vPrecedingString"/>
+                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
                                 </xsl:call-template>
                                 <xsl:element name="tei:c">
                                     <xsl:attribute name="xml:lang" select="'ar'"/>
@@ -191,7 +189,7 @@
                                     <xsl:text>hamza follows a or ā</xsl:text>
                                 </xsl:message>
                                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                                    <xsl:with-param name="pInput" select="$vPrecedingString"/>
+                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
                                 </xsl:call-template>
                                 
                                 <xsl:choose>
@@ -201,7 +199,7 @@
                                     <xsl:text>ئ</xsl:text>
                                 </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingStringRemainder"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
                                         </xsl:call-template>
                                     </xsl:when>
                                     <xsl:when test="$vFollowingStringBeginning = 'ī'">
@@ -210,7 +208,7 @@
                                             <xsl:text>ئ</xsl:text>
                                         </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingString"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
                                         </xsl:call-template>
                                     </xsl:when>
                                     <xsl:when test="$vFollowingStringBeginning = 'u'">
@@ -219,7 +217,7 @@
                                             <xsl:text>ؤ</xsl:text>
                                         </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingStringRemainder"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
                                         </xsl:call-template>
                                     </xsl:when>
                                     <xsl:when test="$vFollowingStringBeginning = 'ū'">
@@ -228,7 +226,7 @@
                                             <xsl:text>ؤ</xsl:text>
                                         </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingString"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
                                         </xsl:call-template>
                                     </xsl:when>
                                 </xsl:choose>
@@ -239,7 +237,7 @@
                                     <xsl:text>hamza follows i or ī</xsl:text>
                                 </xsl:message>
                                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                                    <xsl:with-param name="pInput" select="$vPrecedingString"/>
+                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
                                 </xsl:call-template>
                                 
                                 <xsl:choose>
@@ -252,7 +250,7 @@
                                             <xsl:text>ئ</xsl:text>
                                         </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingStringRemainder"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
                                         </xsl:call-template>
                                     </xsl:when>
                                     <xsl:otherwise>
@@ -264,7 +262,7 @@
                                             <xsl:text>ئ</xsl:text>
                                         </xsl:element>
                                         <xsl:call-template name="funcStringArabicSplitRadicals">
-                                            <xsl:with-param name="pInput" select="$vFollowingString"/>
+                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
                                         </xsl:call-template>
                                     </xsl:otherwise>
                                 </xsl:choose>
@@ -274,14 +272,14 @@
                                     <xsl:text>hamza follows u or ū</xsl:text>
                                 </xsl:message>
                                 <xsl:call-template name="funcStringArabicSplitRadicals">
-                                    <xsl:with-param name="pInput" select="$vPrecedingString"/>
+                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
                                 </xsl:call-template>
                                     <xsl:element name="tei:c">
                                         <xsl:attribute name="xml:lang" select="'ar'"/>
                                         <xsl:text>ؤ</xsl:text>
                                     </xsl:element>
                                     <xsl:call-template name="funcStringArabicSplitRadicals">
-                                        <xsl:with-param name="pInput" select="$vFollowingString"/>
+                                        <xsl:with-param name="p_input" select="$vFollowingString"/>
                                     </xsl:call-template>
                             </xsl:when>
                         </xsl:choose>
@@ -289,25 +287,25 @@
                 </xsl:analyze-string>
             </xsl:when>
             <!-- check for numbers -->
-            <xsl:when test="$pInput castable as xs:double">
+            <xsl:when test="$p_input castable as xs:double">
                 <!--<xsl:message>
-                    <xsl:value-of select="$pInput"/>
+                    <xsl:value-of select="$p_input"/>
                     <xsl:text> is a number</xsl:text>
                 </xsl:message>-->
-                <xsl:for-each select="$pInput">
+                <xsl:for-each select="$p_input">
                     <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                        <xsl:with-param name="pInput" select="."/>
+                        <xsl:with-param name="p_input" select="."/>
                     </xsl:call-template>
                 </xsl:for-each>
             </xsl:when>
             <xsl:otherwise>
                 <!-- split at short vowels -->
-                <xsl:for-each select="tokenize($pInput,'([aui])')">
+                <xsl:for-each select="tokenize($p_input,'([aui])')">
                     <xsl:choose>
                         <!-- transliterate single consonants -->
                         <xsl:when test="string-length(.)=1">
                             <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                                <xsl:with-param name="pInput" select="."/>
+                                <xsl:with-param name="p_input" select="."/>
                             </xsl:call-template>
                         </xsl:when>
                         <xsl:otherwise>
@@ -322,32 +320,32 @@
                                         <xsl:when test="string-length(regex-group(1))=1">
                                             <xsl:call-template
                                                 name="funcStringArabicTransliterateSingleCharacters">
-                                                <xsl:with-param name="pInput"
+                                                <xsl:with-param name="p_input"
                                                     select="regex-group(1)"/>
                                             </xsl:call-template>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <xsl:call-template name="funcStringArabicSplitRadicals">
-                                                <xsl:with-param name="pInput"
+                                                <xsl:with-param name="p_input"
                                                     select="regex-group(1)"/>
                                             </xsl:call-template>
                                         </xsl:otherwise>
                                     </xsl:choose>
                                     <xsl:call-template
                                         name="funcStringArabicTransliterateSingleCharacters">
-                                        <xsl:with-param name="pInput" select="regex-group(2)"/>
+                                        <xsl:with-param name="p_input" select="regex-group(2)"/>
                                     </xsl:call-template>
                                     <xsl:choose>
                                         <xsl:when test="string-length(regex-group(3))=1">
                                             <xsl:call-template
                                                 name="funcStringArabicTransliterateSingleCharacters">
-                                                <xsl:with-param name="pInput"
+                                                <xsl:with-param name="p_input"
                                                     select="regex-group(3)"/>
                                             </xsl:call-template>
                                         </xsl:when>
                                         <xsl:otherwise>
                                             <xsl:call-template name="funcStringArabicSplitRadicals">
-                                                <xsl:with-param name="pInput"
+                                                <xsl:with-param name="p_input"
                                                     select="regex-group(3)"/>
                                             </xsl:call-template>
                                         </xsl:otherwise>
@@ -359,7 +357,7 @@
                                         <xsl:when test="string-length(.)=2">
                                             <xsl:call-template
                                                 name="funcStringArabicTransliterateDoubleCharacters">
-                                                <xsl:with-param name="pInput" select="."/>
+                                                <xsl:with-param name="p_input" select="."/>
                                             </xsl:call-template>
                                         </xsl:when>
                                         <!-- how to deal with strings of more then 2 consonants? -->
@@ -367,30 +365,30 @@
                                         <xsl:when test="string-length(.)=4 and substring(.,1,2) = substring(.,3,2)">
                                             <xsl:call-template
                                                 name="funcStringArabicTransliterateDoubleCharacters">
-                                                <xsl:with-param name="pInput" select="substring(.,1,2)"/>
+                                                <xsl:with-param name="p_input" select="substring(.,1,2)"/>
                                             </xsl:call-template>
                                         </xsl:when>
                                         <xsl:when test="string-length(.)=3">
                                             <!-- check if the first two letters fit a single letter: funcStringArabicTransliterateDoubleCharacters returns a single tei:w node -->
                                             <xsl:variable name="vFirstTwoLetters">
                                                 <xsl:call-template name="funcStringArabicTransliterateDoubleCharacters">
-                                                    <xsl:with-param name="pInput" select="substring(.,1,2)"/>
+                                                    <xsl:with-param name="p_input" select="substring(.,1,2)"/>
                                                 </xsl:call-template>
                                             </xsl:variable>
                                             <xsl:choose>
                                                 <xsl:when test="count($vFirstTwoLetters/tei:c)=1">
                                                     <xsl:copy-of select="$vFirstTwoLetters/tei:c"/>
                                                     <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                                                        <xsl:with-param name="pInput" select="substring(.,3,1)"/>
+                                                        <xsl:with-param name="p_input" select="substring(.,3,1)"/>
                                                     </xsl:call-template>
                                                 </xsl:when>
                                                 <!-- otherwise it must be the other way around as there are no combinations of three Arabic consonants without a vowel -->
                                                 <xsl:otherwise>
                                                     <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                                                        <xsl:with-param name="pInput" select="substring(.,1,1)"/>
+                                                        <xsl:with-param name="p_input" select="substring(.,1,1)"/>
                                                     </xsl:call-template>
                                                     <xsl:call-template name="funcStringArabicTransliterateDoubleCharacters">
-                                                        <xsl:with-param name="pInput" select="substring(.,2,2)"/>
+                                                        <xsl:with-param name="p_input" select="substring(.,2,2)"/>
                                                     </xsl:call-template>
                                                 </xsl:otherwise>
                                             </xsl:choose>
@@ -413,78 +411,80 @@
         </xsl:choose>
     </xsl:template>
     <xsl:template name="funcStringArabicTransliterateDoubleCharacters">
-        <xsl:param name="pInput"/>
+        <xsl:param name="p_input"/>
         <xsl:message>
             <xsl:text>Input funcStringArabicTransliterateDoubleCharacters: </xsl:text>
-            <xsl:value-of select="$pInput"/>
+            <xsl:value-of select="$p_input"/>
         </xsl:message>
         <xsl:choose>
-            <xsl:when test="$pInput='th'">
+            <xsl:when test="$p_input='th'">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ث</xsl:text>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="$pInput='dh'">
+            <xsl:when test="$p_input='dh'">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ذ</xsl:text>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="$pInput='gh'">
+            <xsl:when test="$p_input='gh'">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>غ</xsl:text>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="$pInput='kh'">
+            <xsl:when test="$p_input='kh'">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>خ</xsl:text>
                 </xsl:element>
             </xsl:when>
-            <xsl:when test="$pInput='sh'">
+            <xsl:when test="$p_input='sh'">
                 <xsl:element name="tei:c">
                     <xsl:attribute name="xml:lang" select="'ar'"/>
                     <xsl:text>ش</xsl:text>
                 </xsl:element>
             </xsl:when>
             <!-- dealing with shadda -->
-            <xsl:when test="substring($pInput,1,1) = substring($pInput,2,1)">
+            <xsl:when test="substring($p_input,1,1) = substring($p_input,2,1)">
                 <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                    <xsl:with-param name="pInput" select="substring($pInput,1,1)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,1,1)"/>
                 </xsl:call-template>
             </xsl:when>
             <!-- otherwise it is reasonable to assume that the string represents two single characters -->
             <xsl:otherwise>
                 <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                    <xsl:with-param name="pInput" select="substring($pInput,1,1)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,1,1)"/>
                 </xsl:call-template>
                 <xsl:call-template name="funcStringArabicTransliterateSingleCharacters">
-                    <xsl:with-param name="pInput" select="substring($pInput,2,1)"/>
+                    <xsl:with-param name="p_input" select="substring($p_input,2,1)"/>
                 </xsl:call-template>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     
     <xsl:template name="funcStringArabicTransliterateSingleCharacters">
-        <xsl:param name="pInput"/>
+        <xsl:param name="p_input"/>
         <xsl:message>
             <xsl:text>Input funcStringArabicTransliterateSingleCharacters: </xsl:text>
-            <xsl:value-of select="$pInput"/>
+            <xsl:value-of select="$p_input"/>
         </xsl:message>
         <xsl:element name="tei:c">
             <xsl:attribute name="xml:lang" select="'ar'"/>
             <xsl:value-of
-                select="translate($pInput,$v_string-transcribe-ijmes-from,$v_string-transcribe-arabic-to)"/>
+                select="translate($p_input,$v_string-transcribe-ijmes-from,$v_string-transcribe-arabic-to)"/>
         </xsl:element>
     </xsl:template>
     
-     <xsl:template name="funcStringTokenize">
-        <xsl:param name="pInput"/>
+    <!-- input: string -->
+    <!-- output: mixed content with TEI mark-up for words and punctuation marks -->
+     <xsl:function name="oape:string-mark-up-tokens">
+        <xsl:param name="p_input" as="xs:string"/>
         <!-- periods and dashes are included in the word tokens, as they could mark abbreviations or the Arabic article "al-" -->
         <!-- ([\w]+[\.&apos;\-]*[\w]+[\.]*) -->
-        <xsl:analyze-string regex="([\w\.&apos;:\-]+)" select="$pInput">
+        <xsl:analyze-string regex="([\w\.&apos;:\-]+)" select="$p_input">
             <!-- consider the first group to be a word -->
             <xsl:matching-substring>
                 <xsl:analyze-string regex="(.+)([&apos;:\-])(\w?)$" select="regex-group(1)">
@@ -523,6 +523,6 @@
                 </xsl:analyze-string>
             </xsl:non-matching-substring>
         </xsl:analyze-string>
-    </xsl:template>
+    </xsl:function>
    
 </xsl:stylesheet>
