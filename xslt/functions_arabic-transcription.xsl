@@ -10,6 +10,10 @@
     <!-- the templates assume the IJMES system of transcription -->
     <xsl:variable name="v_string-transcribe-ijmes-from" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāáūīwy0123456789'"/>
     <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهایويوي٠١٢٣٤٥٦٧٨٩'"/>
+    
+    <!--    TO DO:
+        - الل- - XSLT typical mistake when there is wa-l-
+    -->
     <!-- testing: -->
     <!-- <xsl:template match="/">
         <xsl:apply-templates/>
