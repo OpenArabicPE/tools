@@ -9,12 +9,23 @@
     <xsl:output method="xml" indent="yes" encoding="UTF-8"/>
     
     <!-- this stylesheet generates a sitemap.xml to submit to Google for searching the TEI XML files in an edition -->
-    
-    
+   
     <!-- establish the URL of the data folder -->
-    <xsl:param name="p_url-repository" select="replace(base-uri(),'file:(.+?)[/].[^/]+\.xml', '$1')"/>
-    <xsl:variable name="v_url-tei-files" select="concat($p_url-repository,'?select=*.TEIP5.xml')"/>
-<!--    <xsl:variable name="v_url-tei-files" select="'/BachUni/BachBibliothek/GitHub/OpenArabicPE/journal_al-zuhur/tei?select=*.TEIP5.xml'"/>-->
+    <!-- Problem: relative URLs in fn:collection() are relative to the XSLT! -->
+    
+    <xsl:param name="p_github-action" select="false()"/>
+    <xsl:param name="p_tei-folder" select="'tei'"/>
+    <xsl:variable name="v_base-directory">
+        <xsl:choose>
+            <xsl:when test="$p_github-action = true()">
+                <xsl:value-of select="''"/>
+            </xsl:when>
+            <xsl:when test="$p_github-action = false()">
+                <xsl:value-of select="concat(replace(base-uri(),'file:(.+?)[/].[^/]+\.xml', '$1'), '/../')"/>
+            </xsl:when>
+        </xsl:choose>
+    </xsl:variable>
+    <xsl:variable name="v_url-tei-files" select="concat($v_base-directory, $p_tei-folder, '?select=*.TEIP5.xml')"/>
     
     <xsl:template match="/">
         <!-- generate the sitemap -->
