@@ -183,7 +183,7 @@
     <xsl:function name="oape:query-bibliography">
         <!-- input is a tei <title> node -->
         <xsl:param name="title"/>
-        <!-- $bibliography expects a path to a file -->
+        <!-- $bibliography expects a document -->
         <xsl:param name="bibliography"/>
         <!-- $gazetteer expects a path to a file -->
         <xsl:param name="gazetteer"/>
