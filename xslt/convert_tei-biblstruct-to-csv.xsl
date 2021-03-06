@@ -11,26 +11,12 @@
             <xd:p>This stylesheet converts biblStruct nodes to rows of a CSV file. It also adds some information from authority files.</xd:p>
         </xd:desc>
     </xd:doc>
-    <!-- select preference for output language -->
-    <xsl:param name="p_output-language" select="'ar'"/>
-    <!-- locate authority files -->
-    <xsl:param name="p_path-authority-files" select="'../../authority-files/data/tei/'"/>
-    <xsl:param name="p_file-name-gazetteer" select="'gazetteer_levant-phd.TEIP5.xml'"/>
-    <xsl:param name="p_file-name-personography" select="'personography_OpenArabicPE.TEIP5.xml'"/>
-    <!-- toggle debugging messages -->
-    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- import functions -->
-    <xsl:import href="../../tools/xslt/openarabicpe_functions.xsl"/>
+     <xsl:include href="../../authority-files/xslt/functions.xsl"/>
     
-    <!-- load the authority files -->
-    <xsl:variable name="v_gazetteer"
-        select="doc(concat($p_path-authority-files, $p_file-name-gazetteer))"/>
-    <xsl:variable name="v_personography"
-        select="doc(concat($p_path-authority-files, $p_file-name-personography))"/>
-    <!-- variables for CSV output -->
-    <xsl:variable name="v_new-line" select="'&quot;&#x0A;'"/>
-    <xsl:variable name="v_seperator" select="'&quot;,&quot;'"/>
-    <xsl:variable name="v_id-file" select="if(tei:TEI/@xml:id) then(tei:TEI/@xml:id) else(substring-before(tokenize(base-uri(),'/')[last()],'.TEIP5'))"/>
+    <!-- select preference for output language -->
+    <xsl:param name="p_output-language" select="'ar-Latn-x-ijmes'"/>
+    
     <xsl:template match="tei:TEI">
         <xsl:apply-templates select="descendant::tei:text"/>
     </xsl:template>
@@ -41,20 +27,20 @@
             <xsl:text>"article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.id.sakhrit</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.id.oclc</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.coordinates</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.location.id</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.location.lat</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>publication.location.long</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information on article -->
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.name</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.name.normalized</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>author.id.viaf</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>author.id.oape</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>author.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.birth</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>author.death</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>works.viaf.count</xsl:text><!--<xsl:value-of select="$v_seperator"/>
@@ -76,16 +62,13 @@
                 <xsl:value-of select="if(@xml:id) then(concat($v_id-file, '-', @xml:id)) else(@corresp)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication title -->
-                <xsl:value-of select="tei:monogr/tei:title[@level=('m','j')][1]"/>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- publication ID: sakhrit -->
-                <xsl:value-of select="tei:monogr/tei:idno[@type='jid']"/>
+        <xsl:value-of select="oape:query-biblstruct(.,'title' , $p_output-language, '', $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication ID: OCLC -->
-                <xsl:value-of select="tei:monogr/tei:idno[@type='OCLC']"/>
+        <xsl:value-of select="oape:query-biblstruct(.,'id' ,'', '', $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- date -->
-                <xsl:value-of select="tei:monogr/tei:imprint/tei:date/@when"/>
+                <xsl:value-of select="oape:query-biblstruct(., 'date' ,'', '', '')"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- volume -->
                 <xsl:value-of select="tei:monogr/tei:biblScope[@unit='volume']/@from"/>
@@ -94,13 +77,15 @@
                 <xsl:value-of select="tei:monogr/tei:biblScope[@unit='issue']/@from"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- publication place -->
-                <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
-                    <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'name',$p_output-language)"/>
-                </xsl:if>
+                <xsl:value-of select="oape:query-biblstruct(.,'pubPlace' , $p_output-language, $v_gazetteer, $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
-                <xsl:if test="tei:monogr/tei:imprint/tei:pubPlace">
-                    <xsl:value-of select="oape:query-gazetteer(tei:monogr/tei:imprint/tei:pubPlace[1]/tei:placeName[1],$v_gazetteer,'location','')"/>
-                </xsl:if>
+                <!-- ID -->
+                <xsl:value-of select="oape:query-biblstruct(.,'id-location' , $p_output-language, $v_gazetteer, $p_local-authority)"/>
+                <xsl:value-of select="$v_seperator"/>
+                    <!-- location -->
+                <xsl:value-of select="oape:query-biblstruct(.,'lat' , '', $v_gazetteer, $p_local-authority)"/>
+                <xsl:value-of select="$v_seperator"/>
+                <xsl:value-of select="oape:query-biblstruct(.,'lat' , '', $v_gazetteer, $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- article title -->
                 <xsl:value-of select="tei:analytic/tei:title[@level='a']"/>
@@ -125,23 +110,15 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- normalized -->
                 <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'name',$p_output-language)"/>
+                    <xsl:value-of select="oape:query-personography(., $v_personography, $p_local-authority,'name',$p_output-language)"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
                 </xsl:for-each>
                 <xsl:value-of select="$v_seperator"/>
-                <!-- author id: VIAF -->
+                <!-- author id-->
                 <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'viaf','')"/>
-                    <xsl:if test="position() != last()">
-                        <xsl:text>|</xsl:text>
-                    </xsl:if>
-                </xsl:for-each>
-                <xsl:value-of select="$v_seperator"/>
-                <!-- author id: OpenArabicPE (local authority file) -->
-                <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'oape','')"/>
+                    <xsl:value-of select="oape:query-personography(., $v_personography, $p_local-authority,'id','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -149,7 +126,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- birth -->
                 <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'birth','')"/>
+                    <xsl:value-of select="oape:query-personography(., $v_personography, $p_local-authority, 'date-birth','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -157,7 +134,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- death -->
                 <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'death','')"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography, $p_local-authority, 'date-death','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
@@ -165,7 +142,7 @@
                 <xsl:value-of select="$v_seperator"/>
                 <!-- number of works in VIAF -->
                 <xsl:for-each select="tei:analytic/tei:author/tei:persName">
-                    <xsl:value-of select="oape:query-personography(.,$v_personography,'countWorks','')"/>
+                    <xsl:value-of select="oape:query-personography(.,$v_personography, $p_local-authority, 'countWorks','')"/>
                     <xsl:if test="position() != last()">
                         <xsl:text>|</xsl:text>
                     </xsl:if>
