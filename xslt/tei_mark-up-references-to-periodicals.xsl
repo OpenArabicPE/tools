@@ -11,7 +11,8 @@
     <!-- this stylesheet wraps references to periodical titles that start with *jarīda* or *majalla* in a <bibl> and <title> tag  -->
 
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
+<!--    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>-->
+    <xsl:include href="../../authority-files/xslt/functions.xsl"/>
     <!-- reproduce everything as is -->
     <xsl:template match="@* | node()">
         <xsl:copy>
@@ -19,19 +20,22 @@
         </xsl:copy>
     </xsl:template>
     <xsl:template match="text()[not(ancestor::tei:title)]">
-        <xsl:analyze-string regex="(\W|و|^)((مجلة|جريدة)\s+\(*)(ال\w+)(\)*)|(\W|و|^)((مجلة|جريدة)\s+\()(.+?)(\))" select=".">
+        <!-- find the token identifying a periodical and followed by a likely title -->
+        <xsl:variable name="v_regex-1" select="'(\W|و|ل|^)((مجلة|جريدة)\s+)((ال\w+\s*)+)'"/>
+        <xsl:variable name="v_regex-2" select="'(\W|و|ل|^)((مجلة|جريدة)\s+\()(.+?)(\))'"/>
+        <xsl:analyze-string regex="{concat($v_regex-1, '|', $v_regex-2)}" select=".">
             <xsl:matching-substring>
                 <xsl:choose>
-                    <xsl:when test="matches(., '((\W|و|^)(مجلة|جريدة)\s+\(*)(ال\w+)(\)*)')">
+                    <xsl:when test="matches(., $v_regex-1)">
                         <xsl:value-of select="regex-group(1)"/>
                         <xsl:call-template name="t_add-bibl">
                             <xsl:with-param name="p_prefix" select="regex-group(2)"/>
                             <xsl:with-param name="p_title" select="regex-group(4)"/>
-                            <xsl:with-param name="p_suffix" select="regex-group(5)"/>
+                            <xsl:with-param name="p_suffix" select="''"/>
                         </xsl:call-template>
                     </xsl:when>
-                    <xsl:when test="matches(., '((\W|و|^)(مجلة|جريدة)\s+\()(.+?)(\))')">
-                        <xsl:value-of select="regex-group(7)"/>
+                    <xsl:when test="matches(., $v_regex-2)">
+                        <xsl:value-of select="regex-group(6)"/>
                         <xsl:call-template name="t_add-bibl">
                             <xsl:with-param name="p_prefix" select="regex-group(7)"/>
                             <xsl:with-param name="p_title" select="regex-group(9)"/>
@@ -50,6 +54,7 @@
         <xsl:param name="p_prefix"/>
         <xsl:param name="p_title"/>
         <xsl:param name="p_suffix"/>
+        <!-- test if the title string contains a toponym -->
         <!-- wrap everything in a bibl -->
         <xsl:element name="bibl">
             <xsl:attribute name="type" select="'periodical'"/>
