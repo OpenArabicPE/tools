@@ -15,8 +15,8 @@
     </xsl:template>
     <xsl:template match="text()[not(ancestor::tei:title)]">
         <!-- find the token identifying a periodical and followed by a likely title -->
-        <xsl:variable name="v_regex-1" select="'(\W|و|ل|^)((مجلة|جريدة)\s+)((ال\w+\s*)+?)(\s*ال\w+ية*)'"/>
-        <xsl:variable name="v_regex-2" select="'(\W|و|ل|^)((مجلة|جريدة)\s+\()(.+?)(\)\s*(ال\w+ية)*)'"/>
+        <xsl:variable name="v_regex-1" select="'(\W|و|^)((مجلة|جريدة)\s+)((ال\w+\s*)+?)(\s*ال\w+ية*)'"/>
+        <xsl:variable name="v_regex-2" select="'(\W|و|^)((مجلة|جريدة)\s+\()(.+?)(\)\s*(ال\w+ية)*)'"/>
         <xsl:analyze-string regex="{concat($v_regex-1, '|', $v_regex-2)}" select=".">
             <xsl:matching-substring>
                 <xsl:choose>
