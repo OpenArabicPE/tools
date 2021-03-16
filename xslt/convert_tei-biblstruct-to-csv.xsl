@@ -24,17 +24,18 @@
          <!-- stats per biblStruct-->
         <xsl:result-document format="text" href="../metadata/{$v_id-file}-bibl.csv">
             <!-- csv head -->
-            <xsl:text>"article.id</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:value-of select="$v_beginning-of-line"/>
+            <xsl:text>article.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information of journal issue -->
             <xsl:text>publication.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>publication.id</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>date</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>volume</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>issue</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.name</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.id</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.lat</xsl:text><xsl:value-of select="$v_seperator"/>
-            <xsl:text>publication.location.long</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>location.name</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>location.id</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>lat</xsl:text><xsl:value-of select="$v_seperator"/>
+            <xsl:text>long</xsl:text><xsl:value-of select="$v_seperator"/>
             <!-- information on article -->
             <xsl:text>article.title</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>has.author</xsl:text><xsl:value-of select="$v_seperator"/>
@@ -50,14 +51,14 @@
             <xsl:text>word.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>character.count</xsl:text><xsl:value-of select="$v_seperator"/>
             <xsl:text>page.count</xsl:text>-->
-            <xsl:value-of select="$v_new-line"/>
+            <xsl:value-of select="$v_end-of-line"/>
             <!-- one line for each article/ biblStruct -->
             <xsl:apply-templates select="tei:body/descendant::tei:biblStruct" mode="m_tei-to-csv"/>
         </xsl:result-document>
     </xsl:template>
     
     <xsl:template match="tei:biblStruct" mode="m_tei-to-csv">
-                <xsl:text>"</xsl:text>
+                <xsl:value-of select="$v_beginning-of-line"/>
                 <!-- article ID -->
                 <xsl:value-of select="if(@xml:id) then(concat($v_id-file, '-', @xml:id)) else(@corresp)"/>
                 <xsl:value-of select="$v_seperator"/>
@@ -85,7 +86,7 @@
                     <!-- location -->
                 <xsl:value-of select="oape:query-biblstruct(.,'lat' , '', $v_gazetteer, $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
-                <xsl:value-of select="oape:query-biblstruct(.,'lat' , '', $v_gazetteer, $p_local-authority)"/>
+                <xsl:value-of select="oape:query-biblstruct(.,'long' , '', $v_gazetteer, $p_local-authority)"/>
                 <xsl:value-of select="$v_seperator"/>
                 <!-- article title -->
                 <xsl:value-of select="tei:analytic/tei:title[@level='a']"/>
@@ -148,7 +149,7 @@
                     </xsl:if>
                 </xsl:for-each>
                 <!-- end of line -->
-                <xsl:value-of select="$v_new-line"/>
+                <xsl:value-of select="$v_end-of-line"/>
             </xsl:template>
     
     <!-- count words -->
