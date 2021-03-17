@@ -13,7 +13,7 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="text()[not(ancestor::tei:title)]">
+    <xsl:template match="text()[not(ancestor::tei:title | ancestor::tei:bibl)]">
         <xsl:copy-of select="oape:find-references-to-periodicals(.)"/>
     </xsl:template>
     
