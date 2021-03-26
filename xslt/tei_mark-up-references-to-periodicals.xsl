@@ -4,8 +4,9 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- this stylesheet wraps references to periodical titles that start with *jarīda* or *majalla* in a <bibl> and <title> tag  -->
     <!-- NOTE: as always, this doesn't work with mixed-content nodes, such as a <p> interspersed with milestone elements, such as <lb/> -->
-    <!-- identify the author of the change by means of a @xml:id -->
-    <!--    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>-->
+   <!-- Problems:
+       - titles that do not start with "al-" are not caught
+   -->
     <xsl:include href="../../authority-files/xslt/functions.xsl"/>
     <!-- reproduce everything as is -->
     <xsl:template match="@* | node()">
