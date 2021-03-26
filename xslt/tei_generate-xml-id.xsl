@@ -17,7 +17,7 @@
     <!-- variable to test if something needs to be changed -->
     <xsl:variable name="v_changed">
         <xsl:choose>
-            <xsl:when test="/descendant::*[not(@xml:id)]">
+            <xsl:when test="tei:TEI//node()[not(@xml:id)]">
                 <xsl:value-of select="true()"/>
             </xsl:when>
             <xsl:otherwise>
