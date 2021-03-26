@@ -16,6 +16,13 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
+    
+    <!-- debugging -->
+    <xsl:template match="/">
+        <xsl:copy>
+            <xsl:apply-templates/>
+        </xsl:copy>
+    </xsl:template>
     <!-- generate documentation of change -->
     <xsl:template match="tei:revisionDesc" priority="100">
         <xsl:copy>
@@ -35,163 +42,9 @@
         </xsl:attribute>
     </xsl:template>
     <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]" priority="10">
-        <xsl:copy-of select="oape:find-dates(.)"/>
+        <xsl:copy-of select="oape:find-dates(., $p_id-change)"/>
     </xsl:template>
-    <xsl:variable name="v_switch-calendars-at-year" select="1500"/>
-    <xsl:variable name="v_regex-date-dd-MNn-yyyy" select="'(\d{1,2})\s+((\w+\s){1,2})\s*(سنة)*\s+(\d{3,4})'"/>
-    <xsl:variable name="v_regex-date-calendars" select="'((هـ|هجرية*)|(م[\W]|ملادية*|للمسيح))'"/>
-    <xsl:variable name="v_regex-date-yyyy-cal" select="concat('سنة\s+(\d{3,4})', '\s*', $v_regex-date-calendars, '*')"/>
-    <xsl:variable name="v_regex-date-dd-MNn-yyyy-cal" select="concat($v_regex-date-dd-MNn-yyyy, '\s*', $v_regex-date-calendars, '*')"/>
-    <xsl:function name="oape:find-dates">
-        <xsl:param as="xs:string" name="p_text"/>
-        <!-- the regex matches dd MNn yyyy with or without calendars -->
-        <xsl:analyze-string regex="{concat('(^|\D)', $v_regex-date-dd-MNn-yyyy-cal, '|', '(^|\W)', $v_regex-date-yyyy-cal)}" select="$p_text">
-            <xsl:matching-substring>
-                <xsl:variable name="v_format">
-                    <xsl:choose>
-                        <!-- 9 regex groups -->
-                        <xsl:when test="matches(., $v_regex-date-dd-MNn-yyyy-cal)">
-                            <xsl:text>full</xsl:text>
-                        </xsl:when>
-                        <!-- 5 regex groups -->
-                        <xsl:when test="matches(., $v_regex-date-yyyy-cal)">
-                            <xsl:text>year</xsl:text>
-                        </xsl:when>
-                    </xsl:choose>
-                </xsl:variable>
-                <xsl:variable name="v_prefix">
-                    <xsl:if test="$v_format = 'full'">
-                        <xsl:value-of select="regex-group(1)"/>
-                    </xsl:if>
-                    <xsl:if test="$v_format = 'year'">
-                        <xsl:value-of select="regex-group(10)"/>
-                    </xsl:if>
-                </xsl:variable>
-                <xsl:variable name="v_day">
-                    <xsl:if test="$v_format = 'full'">
-                        <xsl:value-of select="number(translate(regex-group(2), $v_string-digits-ar, $v_string-digits-latn))"/>
-                    </xsl:if>
-                </xsl:variable>
-                <xsl:variable name="v_month-name">
-                    <xsl:if test="$v_format = 'full'">
-                        <xsl:value-of select="normalize-space(regex-group(3))"/>
-                    </xsl:if>
-                </xsl:variable>
-                <xsl:variable name="v_year" as="xs:integer">
-                    <xsl:if test="$v_format = 'full'">
-                        <xsl:value-of select="number(translate(regex-group(6), $v_string-digits-ar, $v_string-digits-latn))"/>
-                    </xsl:if>
-                    <xsl:if test="$v_format = 'year'">
-                        <xsl:value-of select="number(translate(regex-group(11), $v_string-digits-ar, $v_string-digits-latn))"/>
-                    </xsl:if>
-                </xsl:variable>
-                <xsl:variable name="v_calendar">
-                    <xsl:if test="$v_format = 'full'">
-                        <xsl:choose>
-                            <xsl:when test="regex-group(7) = ''">
-                                <xsl:value-of select="oape:date-establish-calendar($v_month-name, 'month')"/>
-                            </xsl:when>
-                            <xsl:when test="regex-group(8) != ''">
-                                <xsl:text>#cal_islamic</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="regex-group(9) != ''">
-                                <xsl:text>#cal_gregorian</xsl:text>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:text>NA</xsl:text>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                    <xsl:if test="$v_format = 'year'">
-                        <xsl:choose>
-                            <xsl:when test="regex-group(13) != ''">
-                                <xsl:text>#cal_islamic</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="regex-group(14) != ''">
-                                <xsl:text>#cal_gregorian</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="$v_year lt $v_switch-calendars-at-year">
-                                <xsl:text>#cal_islamic</xsl:text>
-                            </xsl:when>
-                            <xsl:when test="$v_year &gt;= $v_switch-calendars-at-year">
-                                <xsl:text>#cal_gregorian</xsl:text>
-                            </xsl:when>
-                            <xsl:otherwise>
-                                <xsl:text>NA</xsl:text>
-                            </xsl:otherwise>
-                        </xsl:choose>
-                    </xsl:if>
-                </xsl:variable>
-                <xsl:message>
-                    <xsl:value-of select="."/>
-                    <xsl:text> = format: </xsl:text>
-                    <xsl:value-of select="$v_format"/>
-                    <xsl:text>, day: </xsl:text>
-                    <xsl:value-of select="$v_day"/>
-                    <xsl:text>, month: </xsl:text>
-                    <xsl:value-of select="$v_month-name"/>
-                    <xsl:text>, year: </xsl:text>
-                    <xsl:value-of select="$v_year"/>
-                    <xsl:text>, calendar: </xsl:text>
-                    <xsl:value-of select="$v_calendar"/>
-                </xsl:message>
-                <xsl:choose>
-                    <!-- if there is an calendar -->
-                    <xsl:when test="$v_calendar != 'NA'">
-                        <xsl:variable name="v_date-iso">
-                            <xsl:if test="$v_format = 'full'">
-                                <xsl:value-of
-                                    select="concat(format-number($v_year, '0000'), '-', format-number(oape:date-convert-months($v_month-name, 'number', 'ar', $v_calendar), '00'), '-', format-number($v_day, '00'))"
-                                />
-                            </xsl:if>
-                            <xsl:if test="$v_format = 'year'">
-                                <xsl:value-of select="format-number($v_year, '0000')"/>
-                            </xsl:if>
-                        </xsl:variable>
-                        <!-- construct TEI node -->
-                        <xsl:value-of select="$v_prefix"/>
-                        <xsl:element name="date">
-                            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                            <xsl:attribute name="calendar" select="$v_calendar"/>
-                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                            <xsl:if test="$v_calendar != '#cal_gregorian'">
-                                <xsl:attribute name="datingMethod" select="$v_calendar"/>
-                                <xsl:attribute name="when-custom" select="$v_date-iso"/>
-                                <xsl:if test="$v_format = 'full'">
-                                    <xsl:attribute name="when" select="oape:date-convert-calendars($v_date-iso, $v_calendar, '#cal_gregorian')"/>
-                                </xsl:if>
-                                <xsl:if test="$v_format = 'year' and $v_calendar = '#cal_islamic'">
-                                    <xsl:variable name="v_year-range" select="oape:date-convert-islamic-year-to-gregorian($v_date-iso)"/>
-                                    <xsl:choose>
-                                        <xsl:when test="matches($v_year-range, '\d-\d')">
-                                            <xsl:attribute name="from" select=" substring-before($v_year-range, '-')"/>
-                                            <xsl:attribute name="to" select=" substring-after($v_year-range, '-')"/>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:attribute name="when" select="$v_year-range"/>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:if>
-                            </xsl:if>
-                            <xsl:if test="$v_calendar = '#cal_gregorian'">
-                                <xsl:attribute name="when" select="$v_date-iso"/>
-                            </xsl:if>
-                            <!-- content -->
-                            <xsl:value-of select="normalize-space(.)"/>
-                        </xsl:element>
-                        <xsl:text> </xsl:text>
-                    </xsl:when>
-                    <!-- fallback -->
-                    <xsl:otherwise>
-                        <xsl:value-of select="."/>
-                    </xsl:otherwise>
-                </xsl:choose>
-            </xsl:matching-substring>
-            <xsl:non-matching-substring>
-                <xsl:value-of select="."/>
-            </xsl:non-matching-substring>
-        </xsl:analyze-string>
-    </xsl:function>
+    
     <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]" priority="0">
         <xsl:variable name="v_preceding-sibling" select="preceding-sibling::node()[1]"/>
         <xsl:variable name="v_preceding-sibling-is-num"
