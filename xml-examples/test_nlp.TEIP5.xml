@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_all.rng" type="application/xml" schematypens="http://relaxng.org/ns/structure/1.0"?>
+<?xml-model href="http://www.tei-c.org/release/xml/tei/custom/schema/relaxng/tei_all.rng" type="application/xml"
+	schematypens="http://purl.oclc.org/dsdl/schematron"?>
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+   <teiHeader>
+      <fileDesc>
+         <titleStmt>
+            <title>Title</title>
+         </titleStmt>
+         <publicationStmt>
+            <p>Publication Information</p>
+         </publicationStmt>
+         <sourceDesc>
+            <p>Information about the source</p>
+         </sourceDesc>
+      </fileDesc>
+   </teiHeader>
+   <text>
+      <body>
+         <div type="section">
+            <head xml:lang="en">Test automatic mark-up of dates</head>
+            <!-- first p: everything works -->
+            <p xml:lang="ar"
+               >لا يخفى ما في ٢ ايلول سنة ١٩١٠ ميلادية هذه الأبحاث من الفوائد الجزيلة، ولا سيما لأنها ليست مدونة في كتاب. ولا جرم إن هؤلاء الأعراب ٣١ مارس سنة ١٨٤٦ المتبدين الرحل وجدوا في سابق العهد، إلا إن كتاب العرب لم يتعرضوا لذكرهم استنكافاً منه. وإلا إنهم نوهوا بذكر من هم أدنى منهم عددا أو محلا أو محلة. فهذا ابن من ٢ ذو الحجة سنة ١٢٤٥ هجرية خلدون قد ذكر في كتابه (العبر) شيئاً جماً عن العرب والأعراب حتى إنه وضع مجلدا قائما برأسه في هذا البحث عدد صفحاته ٣٣٨ من الصفحات الكبار، وقد نقرنا عما ١١ رجب سنة ١٢٦٧ هـ يفيدنا في هذا الصدد فلم نهتد فيه على شيء واو طفيف. ثم هذا سنة ١٢٢٣ هجرية القلقشندي قد سنة ١٢٢٣ مالية صنف كتاباً جليلا في أنساب العرب على اختلاف قبائلهم وبطونهم وافخاذهم، وسمة بنهاية الأرب، في معرفة أنساب العرب، ولم يذكر عن هؤلاء الرحل شيئاً ولو من طرف خفي. فأنظر إذا حفظك الله إلى فائدة هذه المقالة وما حوت من ضروب الأخبار القومية. ولهذا فإننا نشكر حضرة الكاتب 31 مارس 1846 المتفنن ونتلمس منه كما نتلمس من غيره إن يتحفونا بما هو من هذا الباب حفظا لتاريخ العرب ولما يتعلق بهم ولهم الشكر الجزيل على عملهم هذا.</p>
+            <p xml:lang="ar"
+               >لا نحصيهم من ٢ ذو الحجة سنة ١٢٤٥ هجرية ذوي الفضل في الموافقة سنة ١٢٢٣ هجرية الفنون الكثيرة ١٩ مايو ويجتاز جريدة لسان الحال يحق سنة ٢٢٣ هجرية لكل مشترك في مجلة الزهور: في ساعة من الزمن الكرة الشمسية التي يبلغ قطرها ١٠٨ المتداولة البريد بعنوان مجلة الزهور. شارع فيما بينهم. 31 مارس 1846 البقية تأتي إلا مجلة المشرق ومجلة المقتبس. الكاتبين جرجي وصموئيل يني صاحبي مجلة المباحث الطرابلسية .</p>
+            <p xml:lang="ar">هال ١٠٢١ م) ينتا لبقية تأتي إلا مجلة المشرق ٢٨ آذار سنة ١٩١٣ م ومجلة المقتبس. الكاتبين جرجي وصموئيل يني صاحبي مجلة المباحث الطرابلسية </p>
+         </div>
+         <div type="section">
+            <head xml:lang="en">Test automatic mark-up of references to periodicals</head>
+         </div>
+      </body>
+   </text>
+</TEI>
