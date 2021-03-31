@@ -179,6 +179,8 @@
             <xsl:choose>
                 <!-- if calendar is Gregorian and @when is supplied, nothing should be done -->
                 <xsl:when test="@calendar = '#cal_gregorian' and @when != ''"/>
+                <!-- if @when-custom,  @when etc. are supplied, nothing should be done -->
+                <xsl:when test="@when-custom, @when, @from, @to"/>
                 <xsl:otherwise>
                     <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(., $v_lang, @calendar)"/>
                     <!-- check if the input can be normalised to ISO format -->
