@@ -9,7 +9,7 @@
     <!-- in order to work, this stylesheet needs to be loaded from functions_core.xsl -->
     <!-- the templates assume the IJMES system of transcription -->
     <xsl:variable name="v_string-transcribe-ijmes-from" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāáūīwy0123456789'"/>
-    <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهایويوي٠١٢٣٤٥٦٧٨٩'"/>
+    <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهاىويوي٠١٢٣٤٥٦٧٨٩'"/>
     
     <!--    TO DO:
         - الل- - XSLT typical mistake when there is wa-l-
@@ -116,7 +116,7 @@
                                 </xsl:call-template>
                                 <xsl:element name="tei:c">
                                     <xsl:attribute name="xml:lang" select="'ar'"/>
-                                    <xsl:text>ی</xsl:text>
+                                    <xsl:text>ى</xsl:text>
                                 </xsl:element>
                             </xsl:when>
                         </xsl:choose>
