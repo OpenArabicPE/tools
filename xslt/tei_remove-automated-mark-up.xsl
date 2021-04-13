@@ -11,7 +11,7 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="node()[@change][ancestor::tei:body][not(self::tei:div)]">
+    <xsl:template match="node()[@change][not(self::tei:div)][not(self::tei:idno)]">
         <!-- look-up the first referenced change -->
         <xsl:variable name="v_change-id" select="substring-after(tokenize(@change, '\s+')[1], '#')"/>
         <xsl:variable name="v_change" select="/tei:TEI/tei:teiHeader/tei:revisionDesc/tei:change[@xml:id = $v_change-id][1]"/>
