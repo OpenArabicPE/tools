@@ -12,7 +12,7 @@
     <!-- variable to test if something needs to be changed -->
     <xsl:variable name="v_changed">
         <xsl:choose>
-            <xsl:when test="/tei:TEI//element()[not(@xml:id)]">
+            <xsl:when test="/descendant::*[not(@xml:id)]">
                 <xsl:value-of select="true()"/>
             </xsl:when>
             <xsl:otherwise>
@@ -27,37 +27,23 @@
         </xsl:copy>
     </xsl:template>
     <!-- generate an @xml:id for the selected element -->
-    <xsl:template match="tei:TEI//element()">
-        <!--<xsl:variable name="vName"
-            select="
-                if (starts-with(name(), 'tei:')) then
-                    (substring-after(name(), 'tei:'))
-                else
-                    (name())"/>-->
+    <xsl:template match="*[not(@xml:id)]">
         <xsl:variable name="v_name" select="local-name()"/>
         <xsl:copy>
+            <xsl:apply-templates select="@*"/>
+            <!-- add documentation of change -->
             <xsl:choose>
-                <!-- if an xml:id is already present, it should never (!) be changed -->
-                <xsl:when test="@xml:id">
-                    <xsl:apply-templates select="@* | node()"/>
+                <xsl:when test="not(@change)">
+                    <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:apply-templates select="@*"/>
-                    <!-- add documentation of change -->
-                    <xsl:choose>
-                        <xsl:when test="not(@change)">
-                            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <xsl:apply-templates mode="m_documentation" select="@change"/>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                    <xsl:attribute name="xml:id">
-                        <xsl:value-of select="concat($v_name, '_', count(preceding::node()[name() = $v_name]) + 1, '.', generate-id())"/>
-                    </xsl:attribute>
-                    <xsl:apply-templates select="node()"/>
+                    <xsl:apply-templates mode="m_documentation" select="@change"/>
                 </xsl:otherwise>
             </xsl:choose>
+            <xsl:attribute name="xml:id">
+                <xsl:value-of select="concat($v_name, '_', count(preceding::node()[name() = $v_name]) + 1, '.', generate-id())"/>
+            </xsl:attribute>
+            <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
     <!-- generate documentation of change -->
