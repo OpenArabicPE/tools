@@ -8,8 +8,8 @@
     <!-- the templates/ functions in this stylesheet aim at automatic re-translation from Arabic in Latin transcription to Arabic in Arabic script -->
     <!-- in order to work, this stylesheet needs to be loaded from functions_core.xsl -->
     <!-- the templates assume the IJMES system of transcription -->
-    <xsl:variable name="v_string-transcribe-ijmes-from" select="'btḥḫjdrzsṣḍṭẓʿfqklmnhāáūīwy0123456789'"/>
-    <xsl:variable name="v_string-transcribe-arabic-to" select="'بتحخجدرزسصضطظعفقكلمنهاىويوي٠١٢٣٤٥٦٧٨٩'"/>
+    <xsl:variable name="v_string-transcribe-ijmes-from" select="'btṯṯḥḫjǧǧdḏrzsšṣḍṭẓʿġfqḳḳklmnhâāāáûūūîīwy0123456789'"/>
+    <xsl:variable name="v_string-transcribe-arabic-to" select="'بتثثحخجججدذرزسشصضطظعغفقققكلمنهاااىوووييوي٠١٢٣٤٥٦٧٨٩'"/>
     
     <!--    TO DO:
         - الل- - XSLT typical mistake when there is wa-l-
@@ -30,7 +30,7 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>-->
-    <xsl:function name="oape:string-transliterate-ijmes-to-arabic">
+    <xsl:function name="oape:string-transliterate-arabic_latin-to-arabic">
         <xsl:param as="xs:string" name="p_input"/>
         <xsl:variable name="v_tokenized" select="oape:string-mark-up-tokens($p_input)"/>
         <xsl:for-each select="$v_tokenized/self::node()">
@@ -85,7 +85,7 @@
                     <xsl:value-of select="regex-group(2)"/>
                 </xsl:message>
                 <!-- Problem: if we loop the input through funcStringTranscribeIjmesToArabic, it is lost somewhere down the line -->
-                <xsl:copy-of select="oape:string-transliterate-ijmes-to-arabic(regex-group(2))"/>
+                <xsl:copy-of select="oape:string-transliterate-arabic_latin-to-arabic(regex-group(2))"/>
                 <!--<xsl:call-template name="funcStringArabicArticleGender">
                     <xsl:with-param name="p_input" select="regex-group(2)"/>
                 </xsl:call-template>-->
