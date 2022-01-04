@@ -27,7 +27,7 @@
         </xsl:copy>
     </xsl:template>
     <!-- generate an @xml:id for the selected element -->
-    <xsl:template match="*[not(@xml:id)]">
+    <xsl:template match="tei:TEI/descendant::*[not(@xml:id)]">
         <xsl:variable name="v_name" select="local-name()"/>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
