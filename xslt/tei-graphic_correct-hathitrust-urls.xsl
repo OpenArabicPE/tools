@@ -25,21 +25,22 @@
         <xsl:variable name="v_hathitrust-base-url"  select="replace(@url,'(^.+;seq=)(\d+)', '$1')"/>
         <xsl:variable name="v_hathitrust-seq"  select="number(replace(@url,'(^.+;seq=)(\d+)', '$2'))"/>
         <xsl:variable name="v_hathitrust-correction-factor">
-            <xsl:choose>
-                <!-- these are the correction factors for al-Muqtabas 8 as of 2020-07-27 -->
+            <!--<xsl:choose>
+                <!-\- these are the correction factors for al-Muqtabas 8 as of 2020-07-27 -\->
                  <xsl:when test="$v_corresponding-pb-n &gt;= 876">
                     <xsl:value-of select="4"/>
                 </xsl:when>
-                <!--<xsl:when test="$v_corresponding-pb-n &gt;= 718">
+                <!-\-<xsl:when test="$v_corresponding-pb-n &gt;= 718">
                     <xsl:value-of select="4"/>
                 </xsl:when>
                 <xsl:when test="$v_corresponding-pb-n &gt;= 404">
                     <xsl:value-of select="2"/>
-                </xsl:when>-->
+                </xsl:when>-\->
                 <xsl:otherwise>
                     <xsl:value-of select="$p_hathitrust-correction-factor"/>
                 </xsl:otherwise>
-            </xsl:choose>
+            </xsl:choose>-->
+            <xsl:value-of select="$p_hathitrust-correction-factor"/>
         </xsl:variable>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
@@ -55,7 +56,7 @@
                 </xsl:choose>
             </xsl:attribute>
             <!-- fix URL -->
-            <xsl:attribute name="url" select="concat($v_hathitrust-base-url, $v_hathitrust-seq - $v_hathitrust-correction-factor)"/>
+            <xsl:attribute name="url" select="concat($v_hathitrust-base-url, $v_hathitrust-seq + $v_hathitrust-correction-factor)"/>
             <xsl:apply-templates/>
         </xsl:copy>
     </xsl:template>
