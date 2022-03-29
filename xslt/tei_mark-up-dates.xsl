@@ -77,6 +77,7 @@
                     </xsl:message>
                 </xsl:if>
                 <xsl:element name="tei:date">
+                    <xsl:attribute name="resp" select="'#xslt'"/>
                     <!-- establish the calendar -->
                     <xsl:choose>
                         <!-- the date is Hijrī if we find a trailing 'هـ'  -->
@@ -131,6 +132,7 @@
                 </xsl:otherwise>
             </xsl:choose>
             <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+            <xsl:attribute name="resp" select="'#xslt'"/>
             <xsl:copy-of select="."/>
         </xsl:element>
     </xsl:template>
@@ -164,6 +166,7 @@
                 </xsl:matching-substring>
             </xsl:analyze-string>
             <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+            <xsl:attribute name="resp" select="'#xslt'"/>
             <xsl:copy-of select="."/>
         </xsl:element>
     </xsl:template>
