@@ -17,7 +17,9 @@
     
     <!-- TO DO: 
         1. the OCLC number must be retrieved from the input file
-        2. EAP has switched to IIIF and therefore new URLs-->
+        2. EAP has switched to IIIF and therefore new URLs
+        3. add support for GPA
+    -->
     
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
 
