@@ -4,10 +4,10 @@
     <!-- the templates/ functions in this stylesheet aim at automatic re-translation from Arabic in Latin transcription to Arabic in Arabic script -->
     <!-- in order to work, this stylesheet needs to be loaded from functions_core.xsl -->
     <!-- the templates assume the IJMES system of transcription -->
-    <xsl:variable name="v_string-transcribe-ijmes-from" select="'btṯṯḥḫjǧǧdḏrzsšṣḍṭẓʿʻġfqḳḳklmnhâāāáûūūîīwy0123456789'"/>
-    <xsl:variable name="v_string-transcribe-arabic-to" select="'بتثثحخجججدذرزسشصضطظععغفقققكلمنهاااىوووييوي٠١٢٣٤٥٦٧٨٩'"/>
+    <xsl:variable name="v_string-transcribe-ijmes-from" select="'bptṯṯḥḫjǧǧdḏrzsšṣḍṭẓʿʻġfqḳḳklmnhâāāáûūūîīwy0123456789'"/>
+    <xsl:variable name="v_string-transcribe-arabic-to" select="'بپتثثحخجججدذرزسشصضطظععغفقققكلمنهاااىوووييوي٠١٢٣٤٥٦٧٨٩'"/>
     <xsl:variable name="v_regex-hamza" select="'[ʾ|ʼ]'"/>
-    <xsl:param name="p_debug" select="true()"/>
+    <xsl:param name="p_debug" select="false()"/>
     <!--    TO DO:
         - الل- - XSLT typical mistake when there is wa-l-
     -->
@@ -48,10 +48,12 @@
         </xsl:message>
         <xsl:message>iterating through tokens</xsl:message>
         <xsl:for-each select="$v_tokenized/self::element()">
-            <xsl:message>
-                <xsl:text>token: </xsl:text>
-                <xsl:value-of select="."/>
-            </xsl:message>
+            <xsl:if test="$p_debug = true()">
+                <xsl:message>
+                    <xsl:text>token: </xsl:text>
+                    <xsl:value-of select="."/>
+                </xsl:message>
+            </xsl:if>
             <xsl:choose>
                 <xsl:when test="self::tei:w">
                     <xsl:variable name="v_word">
@@ -61,6 +63,10 @@
                     </xsl:variable>
                     <!-- reassemble all words from right to left  -->
                     <xsl:if test="$v_word/descendant-or-self::tei:c[@xml:lang = 'ar']">
+                        <xsl:message>
+                            <xsl:text>input: </xsl:text>
+                            <xsl:value-of select="."/>
+                        </xsl:message>
                         <xsl:message>
                             <xsl:text>assembled output: </xsl:text>
                             <xsl:value-of select="$v_word"/>
@@ -88,14 +94,16 @@
                 <xsl:value-of select="$p_input"/>
             </xsl:message>
         </xsl:if>
-        <xsl:analyze-string regex="(.+)\-(\w[^-]+)$" select="lower-case($p_input)">
+        <xsl:analyze-string regex="^(.+)(-|')(.+?)$" select="lower-case($p_input)">
             <xsl:matching-substring>
+                <xsl:variable name="v_string-prefix" select="regex-group(1)"/>
+                <xsl:variable name="v_string-remainder" select="regex-group(3)"/>
                 <xsl:choose>
-                    <xsl:when test="regex-group(1) = ('al', 'el', 'ad', 'ed')">
+                    <xsl:when test="matches($v_string-prefix, '(a|e)(l|d|ḍ|t|ṭ|z|ẓ|s|š|n)')">
                         <xsl:if test="$p_debug = true()">
                             <xsl:message>
                                 <xsl:text>determined article "</xsl:text>
-                                <xsl:value-of select="regex-group(1)"/>
+                                <xsl:value-of select="$v_string-prefix"/>
                                 <xsl:text>"</xsl:text>
                             </xsl:message>
                         </xsl:if>
@@ -108,11 +116,11 @@
                             <xsl:text>ل</xsl:text>
                         </xsl:element>
                     </xsl:when>
-                    <xsl:when test="regex-group(1) = ('bi-al', 'bi-l')">
+                    <xsl:when test="$v_string-prefix = ('bi-al', 'bi-l')">
                         <xsl:if test="$p_debug = true()">
                             <xsl:message>
                                 <xsl:text>preposition followed by determined article "</xsl:text>
-                                <xsl:value-of select="regex-group(1)"/>
+                                <xsl:value-of select="$v_string-prefix"/>
                                 <xsl:text>"</xsl:text>
                             </xsl:message>
                         </xsl:if>
@@ -129,11 +137,11 @@
                             <xsl:text>ل</xsl:text>
                         </xsl:element>
                     </xsl:when>
-                    <xsl:when test="regex-group(1) = ('wa-al', 'wa-l')">
+                    <xsl:when test="$v_string-prefix = ('wa-al', 'wa-l')">
                         <xsl:if test="$p_debug = true()">
                             <xsl:message>
                                 <xsl:text>preposition followed by determined article "</xsl:text>
-                                <xsl:value-of select="regex-group(1)"/>
+                                <xsl:value-of select="$v_string-prefix"/>
                                 <xsl:text>"</xsl:text>
                             </xsl:message>
                         </xsl:if>
@@ -150,12 +158,66 @@
                             <xsl:text>ل</xsl:text>
                         </xsl:element>
                     </xsl:when>
-
+                    <xsl:when test="$v_string-prefix = ('li-al', 'li-l', 'lil', 'li-''l')">
+                        <xsl:if test="$p_debug = true()">
+                            <xsl:message>
+                                <xsl:text>preposition followed by determined article "</xsl:text>
+                                <xsl:value-of select="$v_string-prefix"/>
+                                <xsl:text>"</xsl:text>
+                            </xsl:message>
+                        </xsl:if>
+                        <xsl:element name="tei:c">
+                            <xsl:attribute name="xml:lang" select="'ar'"/>
+                            <xsl:text>ل</xsl:text>
+                        </xsl:element>
+                        <xsl:element name="tei:c">
+                            <xsl:attribute name="xml:lang" select="'ar'"/>
+                            <xsl:text>ل</xsl:text>
+                        </xsl:element>
+                    </xsl:when>
+                    <xsl:when test="$v_string-prefix = ('li', 'bi', 'wa')">
+                        <xsl:if test="$p_debug = true()">
+                            <xsl:message>
+                                <xsl:text>preposition "</xsl:text>
+                                <xsl:value-of select="regex-group(1)"/>
+                                <xsl:text>"</xsl:text>
+                            </xsl:message>
+                        </xsl:if>
+                        <xsl:choose>
+                            <xsl:when test="$v_string-prefix = 'bi'">
+                                <xsl:element name="tei:c">
+                                    <xsl:attribute name="xml:lang" select="'ar'"/>
+                                    <xsl:text>ب</xsl:text>
+                                </xsl:element>
+                            </xsl:when>
+                            <xsl:when test="$v_string-prefix = 'li'">
+                                <xsl:element name="tei:c">
+                                    <xsl:attribute name="xml:lang" select="'ar'"/>
+                                    <xsl:text>ل</xsl:text>
+                                </xsl:element>
+                            </xsl:when>
+                            <xsl:when test="$v_string-prefix = 'wa'">
+                                <xsl:element name="tei:c">
+                                    <xsl:attribute name="xml:lang" select="'ar'"/>
+                                    <xsl:text>و</xsl:text>
+                                </xsl:element>
+                            </xsl:when>
+                        </xsl:choose>
+                    </xsl:when>
                     <!-- otherwise not implemented -->
-                    <xsl:otherwise/>
+                    <xsl:otherwise>
+                        <xsl:message error-code="2" terminate="no">
+                            <xsl:text>The prefix "</xsl:text>
+                            <xsl:value-of select="regex-group(1)"/>
+                            <xsl:text>" has not been recognised</xsl:text>
+                        </xsl:message>
+                        <xsl:call-template name="f-2_string-arabic-split-radicals">
+                            <xsl:with-param name="p_input" select="$v_string-prefix"/>
+                        </xsl:call-template>
+                    </xsl:otherwise>
                 </xsl:choose>
                 <!-- Problem: if we loop the input through funcStringTranscribeIjmesToArabic, it is lost somewhere down the line -->
-                <xsl:copy-of select="oape:string-transliterate-arabic_latin-to-arabic(regex-group(2))"/>
+                <xsl:copy-of select="oape:string-transliterate-arabic_latin-to-arabic($v_string-remainder)"/>
                 <!--<xsl:call-template name="f-1_string-arabic-article-gender">
                     <xsl:with-param name="p_input" select="regex-group(2)"/>
                 </xsl:call-template>-->
@@ -166,9 +228,11 @@
                     <xsl:matching-substring>
                         <xsl:choose>
                             <xsl:when test="matches(., '^\w+īyah$')">
-                                <xsl:message>
-                                    <xsl:text>word ends in yāʾ+tāʾ marbūṭa</xsl:text>
-                                </xsl:message>
+                                <xsl:if test="$p_debug = true()">
+                                    <xsl:message>
+                                        <xsl:text>word ends in yāʾ+tāʾ marbūṭa</xsl:text>
+                                    </xsl:message>
+                                </xsl:if>
                                 <xsl:call-template name="f-2_string-arabic-split-radicals">
                                     <xsl:with-param name="p_input" select="regex-group(1)"/>
                                 </xsl:call-template>
@@ -182,9 +246,11 @@
                                 </xsl:element>
                             </xsl:when>
                             <xsl:when test="matches(., '^\w+a[t|h]*$')">
-                                <xsl:message>
-                                    <xsl:text>word ends in tāʾ marbūṭa</xsl:text>
-                                </xsl:message>
+                                <xsl:if test="$p_debug = true()">
+                                    <xsl:message>
+                                        <xsl:text>word ends in tāʾ marbūṭa</xsl:text>
+                                    </xsl:message>
+                                </xsl:if>
                                 <xsl:call-template name="f-2_string-arabic-split-radicals">
                                     <xsl:with-param name="p_input" select="regex-group(2)"/>
                                 </xsl:call-template>
@@ -194,9 +260,11 @@
                                 </xsl:element>
                             </xsl:when>
                             <xsl:when test="matches(., '|^(\w+)[a|i|u]hā$')">
-                                <xsl:message>
-                                    <xsl:text>word ends in female possessive</xsl:text>
-                                </xsl:message>
+                                <xsl:if test="$p_debug = true()">
+                                    <xsl:message>
+                                        <xsl:text>word ends in female possessive</xsl:text>
+                                    </xsl:message>
+                                </xsl:if>
                                 <xsl:call-template name="f-2_string-arabic-split-radicals">
                                     <xsl:with-param name="p_input" select="regex-group(3)"/>
                                 </xsl:call-template>
@@ -210,9 +278,11 @@
                                 </xsl:element>
                             </xsl:when>
                             <xsl:when test="matches(., '^\w+ā$')">
-                                <xsl:message>
-                                    <xsl:text>word ends in alif makṣūra</xsl:text>
-                                </xsl:message>
+                                <xsl:if test="$p_debug = true()">
+                                    <xsl:message>
+                                        <xsl:text>word ends in alif makṣūra</xsl:text>
+                                    </xsl:message>
+                                </xsl:if>
                                 <xsl:call-template name="f-2_string-arabic-split-radicals">
                                     <xsl:with-param name="p_input" select="regex-group(4)"/>
                                 </xsl:call-template>
@@ -246,286 +316,311 @@
         </xsl:if>
         <!-- starting hamza -->
         <xsl:variable name="v_output">
-        <xsl:choose>
-            <xsl:when test="starts-with($p_input, 'i')">
-                <xsl:element name="tei:c">
-                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                    <xsl:text>ا</xsl:text>
-                </xsl:element>
-                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                    <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="starts-with($p_input, 'a')">
-                <xsl:element name="tei:c">
-                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                    <xsl:text>ا</xsl:text>
-                </xsl:element>
-                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                    <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
-                </xsl:call-template>
-            </xsl:when>
-            <xsl:when test="starts-with($p_input, 'u')">
-                <xsl:element name="tei:c">
-                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                    <xsl:text>ا</xsl:text>
-                </xsl:element>
-                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                    <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
-                </xsl:call-template>
-            </xsl:when>
-            <!-- hamza in the middle or at the end of a word -->
-            <xsl:when test="matches($p_input, concat('^.+', $v_regex-hamza))">
-                <xsl:message>
-                    <xsl:text>string contains hamza</xsl:text>
-                </xsl:message>
-                <xsl:analyze-string regex="{concat('(\w*)', $v_regex-hamza, '(\w*)')}" select="$p_input">
-                    <xsl:matching-substring>
-                        <xsl:variable name="vPrecedingStringLength" select="string-length(regex-group(1))"/>
-                        <xsl:variable name="vPrecedingString" select="regex-group(1)"/>
-                        <xsl:variable name="vPrecedingStringEnd" select="substring($vPrecedingString, $vPrecedingStringLength)"/>
-                        <xsl:variable name="vFollowingString" select="regex-group(2)"/>
-                        <xsl:variable name="vFollowingStringBeginning" select="substring($vFollowingString, 1, 1)"/>
-                        <xsl:variable name="vFollowingStringRemainder" select="substring($vFollowingString, 2)"/>
+            <xsl:choose>
+                <xsl:when test="starts-with($p_input, 'i')">
+                    <xsl:element name="tei:c">
+                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                        <xsl:text>ا</xsl:text>
+                    </xsl:element>
+                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                        <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:when test="starts-with($p_input, 'a')">
+                    <xsl:element name="tei:c">
+                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                        <xsl:text>ا</xsl:text>
+                    </xsl:element>
+                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                        <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <xsl:when test="starts-with($p_input, 'u')">
+                    <xsl:element name="tei:c">
+                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                        <xsl:text>ا</xsl:text>
+                    </xsl:element>
+                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                        <xsl:with-param name="p_input" select="substring($p_input, 2)"/>
+                    </xsl:call-template>
+                </xsl:when>
+                <!-- hamza in the middle or at the end of a word -->
+                <xsl:when test="matches($p_input, concat('^.+', $v_regex-hamza))">
+                    <xsl:if test="$p_debug = true()">
                         <xsl:message>
-                            <xsl:text>hamza follows "</xsl:text>
-                            <xsl:value-of select="$vPrecedingString"/>
-                            <xsl:text>" and is followed by "</xsl:text>
-                            <xsl:value-of select="$vFollowingString"/>
-                            <xsl:text>"</xsl:text>
+                            <xsl:text>string contains hamza</xsl:text>
                         </xsl:message>
-                        <xsl:choose>
-                            <!-- trailing hamza -->
-                            <xsl:when test="regex-group(2) = ''">
+                    </xsl:if>
+                    <xsl:analyze-string regex="{concat('(\w*)', $v_regex-hamza, '(\w*)')}" select="$p_input">
+                        <xsl:matching-substring>
+                            <xsl:variable name="v_string-preceding-length" select="string-length(regex-group(1))"/>
+                            <xsl:variable name="v_string-preceding" select="regex-group(1)"/>
+                            <xsl:variable name="v_string-preceding-end" select="substring($v_string-preceding, $v_string-preceding-length)"/>
+                            <xsl:variable name="v_string-following" select="regex-group(2)"/>
+                            <xsl:variable name="v_string-following-first-letter" select="substring($v_string-following, 1, 1)"/>
+                            <xsl:variable name="v_string-following-remainder" select="substring($v_string-following, 2)"/>
+                            <xsl:if test="$p_debug = true()">
                                 <xsl:message>
-                                    <xsl:text>trailing hamza</xsl:text>
+                                    <xsl:text>hamza follows "</xsl:text>
+                                    <xsl:value-of select="$v_string-preceding"/>
+                                    <xsl:text>" and is followed by "</xsl:text>
+                                    <xsl:value-of select="$v_string-following"/>
+                                    <xsl:text>"</xsl:text>
                                 </xsl:message>
-                                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
-                                </xsl:call-template>
-                                <xsl:element name="tei:c">
-                                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                                    <xsl:text>ء</xsl:text>
-                                </xsl:element>
-                            </xsl:when>
-                            <!-- hamza following a or ā -->
-                            <xsl:when test="$vPrecedingStringEnd = 'a' or $vPrecedingStringEnd = 'ā'">
-                                <xsl:message>
-                                    <xsl:text>hamza follows a or ā</xsl:text>
-                                </xsl:message>
-                                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
-                                </xsl:call-template>
-                                <xsl:choose>
-                                    <xsl:when test="$vFollowingStringBeginning = 'i'">
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ئ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                    <xsl:when test="$vFollowingStringBeginning = 'ī'">
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ئ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                    <xsl:when test="$vFollowingStringBeginning = 'u'">
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ؤ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                    <xsl:when test="$vFollowingStringBeginning = 'ū'">
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ؤ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                </xsl:choose>
-                            </xsl:when>
-                            <!-- hamza following i or ī -->
-                            <xsl:when test="$vPrecedingStringEnd = 'i' or $vPrecedingStringEnd = 'ī'">
-                                <xsl:message>
-                                    <xsl:text>hamza follows i or ī</xsl:text>
-                                </xsl:message>
-                                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
-                                </xsl:call-template>
-                                <xsl:choose>
-                                    <xsl:when test="$vFollowingStringBeginning = 'i' or $vFollowingStringBeginning = 'a'">
+                            </xsl:if>
+                            <xsl:choose>
+                                <!-- trailing hamza -->
+                                <xsl:when test="$v_string-following = ''">
+                                    <xsl:if test="$p_debug = true()">
                                         <xsl:message>
-                                            <xsl:text>hamza is followed by i or a</xsl:text>
+                                            <xsl:text>trailing hamza</xsl:text>
                                         </xsl:message>
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ئ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingStringRemainder"/>
-                                        </xsl:call-template>
-                                    </xsl:when>
-                                    <xsl:otherwise>
+                                    </xsl:if>
+                                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                        <xsl:with-param name="p_input" select="$v_string-preceding"/>
+                                    </xsl:call-template>
+                                    <xsl:element name="tei:c">
+                                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                                        <xsl:text>ء</xsl:text>
+                                    </xsl:element>
+                                </xsl:when>
+                                <!-- hamza following a or ā -->
+                                <xsl:when test="$v_string-preceding-end = 'a' or $v_string-preceding-end = 'ā'">
+                                    <xsl:if test="$p_debug = true()">
                                         <xsl:message>
-                                            <xsl:text>hamza is followed by u or consonant</xsl:text>
+                                            <xsl:text>hamza follows a or ā</xsl:text>
                                         </xsl:message>
-                                        <xsl:element name="tei:c">
-                                            <xsl:attribute name="xml:lang" select="'ar'"/>
-                                            <xsl:text>ئ</xsl:text>
-                                        </xsl:element>
-                                        <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                            <xsl:with-param name="p_input" select="$vFollowingString"/>
-                                        </xsl:call-template>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:when>
-                            <xsl:when test="$vPrecedingStringEnd = 'u' or $vPrecedingStringEnd = 'ū'">
-                                <xsl:message>
-                                    <xsl:text>hamza follows u or ū</xsl:text>
-                                </xsl:message>
-                                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                    <xsl:with-param name="p_input" select="$vPrecedingString"/>
-                                </xsl:call-template>
-                                <xsl:element name="tei:c">
-                                    <xsl:attribute name="xml:lang" select="'ar'"/>
-                                    <xsl:text>ؤ</xsl:text>
-                                </xsl:element>
-                                <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                    <xsl:with-param name="p_input" select="$vFollowingString"/>
-                                </xsl:call-template>
-                            </xsl:when>
-                        </xsl:choose>
-                    </xsl:matching-substring>
-                </xsl:analyze-string>
-            </xsl:when>
-            <!-- check for numbers -->
-            <xsl:when test="$p_input castable as xs:double">
-                <!--<xsl:message>
+                                    </xsl:if>
+                                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                        <xsl:with-param name="p_input" select="$v_string-preceding"/>
+                                    </xsl:call-template>
+                                    <xsl:choose>
+                                        <xsl:when test="$v_string-following-first-letter = 'i'">
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ئ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following-remainder"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                        <xsl:when test="$v_string-following-first-letter = 'ī'">
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ئ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                        <xsl:when test="$v_string-following-first-letter = 'u'">
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ؤ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following-remainder"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                        <xsl:when test="$v_string-following-first-letter = 'ū'">
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ؤ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                        <xsl:when test="$v_string-following-first-letter = 'ā'">
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ء</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <!-- hamza following i or ī -->
+                                <xsl:when test="$v_string-preceding-end = 'i' or $v_string-preceding-end = 'ī'">
+                                    <xsl:if test="$p_debug = true()">
+                                        <xsl:message>
+                                            <xsl:text>hamza follows i or ī</xsl:text>
+                                        </xsl:message>
+                                    </xsl:if>
+                                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                        <xsl:with-param name="p_input" select="$v_string-preceding"/>
+                                    </xsl:call-template>
+                                    <xsl:choose>
+                                        <xsl:when test="$v_string-following-first-letter = 'i' or $v_string-following-first-letter = 'a'">
+                                            <xsl:if test="$p_debug = true()">
+                                                <xsl:message>
+                                                    <xsl:text>hamza is followed by i or a</xsl:text>
+                                                </xsl:message>
+                                            </xsl:if>
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ئ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following-remainder"/>
+                                            </xsl:call-template>
+                                        </xsl:when>
+                                        <xsl:otherwise>
+                                            <xsl:if test="$p_debug = true()">
+                                                <xsl:message>
+                                                    <xsl:text>hamza is followed by u or consonant</xsl:text>
+                                                </xsl:message>
+                                            </xsl:if>
+                                            <xsl:element name="tei:c">
+                                                <xsl:attribute name="xml:lang" select="'ar'"/>
+                                                <xsl:text>ئ</xsl:text>
+                                            </xsl:element>
+                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                <xsl:with-param name="p_input" select="$v_string-following"/>
+                                            </xsl:call-template>
+                                        </xsl:otherwise>
+                                    </xsl:choose>
+                                </xsl:when>
+                                <xsl:when test="$v_string-preceding-end = 'u' or $v_string-preceding-end = 'ū'">
+                                    <xsl:if test="$p_debug = true()">
+                                        <xsl:message>
+                                            <xsl:text>hamza follows u or ū</xsl:text>
+                                        </xsl:message>
+                                    </xsl:if>
+                                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                        <xsl:with-param name="p_input" select="$v_string-preceding"/>
+                                    </xsl:call-template>
+                                    <xsl:element name="tei:c">
+                                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                                        <xsl:text>ؤ</xsl:text>
+                                    </xsl:element>
+                                    <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                        <xsl:with-param name="p_input" select="$v_string-following"/>
+                                    </xsl:call-template>
+                                </xsl:when>
+                            </xsl:choose>
+                        </xsl:matching-substring>
+                    </xsl:analyze-string>
+                </xsl:when>
+                <!-- check for numbers -->
+                <xsl:when test="$p_input castable as xs:double">
+                    <!--<xsl:message>
                     <xsl:value-of select="$p_input"/>
                     <xsl:text> is a number</xsl:text>
                 </xsl:message>-->
-                <xsl:for-each select="$p_input">
-                    <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                        <xsl:with-param name="p_input" select="."/>
-                    </xsl:call-template>
-                </xsl:for-each>
-            </xsl:when>
-            <xsl:otherwise>
-                <!-- split at short vowels -->
-                <xsl:for-each select="tokenize($p_input, '([aui])')">
-                    <xsl:choose>
-                        <!-- transliterate single consonants -->
-                        <xsl:when test="string-length(.) = 1">
-                            <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                <xsl:with-param name="p_input" select="."/>
-                            </xsl:call-template>
-                        </xsl:when>
-                        <xsl:otherwise>
-                            <!-- split strings at long vowels, single consonants are immediately transliterated -->
-                            <xsl:analyze-string regex="(\w*)([āūī])(\w*)" select=".">
-                                <xsl:matching-substring>
-                                    <!-- the string contanis long vowls -->
-                                    <!--<xsl:message>
+                    <xsl:for-each select="$p_input">
+                        <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                            <xsl:with-param name="p_input" select="."/>
+                        </xsl:call-template>
+                    </xsl:for-each>
+                </xsl:when>
+                <xsl:otherwise>
+                    <!-- split at short vowels -->
+                    <xsl:for-each select="tokenize($p_input, '([aui])')">
+                        <xsl:choose>
+                            <!-- transliterate single consonants -->
+                            <xsl:when test="string-length(.) = 1">
+                                <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                    <xsl:with-param name="p_input" select="."/>
+                                </xsl:call-template>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <!-- split strings at long vowels, single consonants are immediately transliterated -->
+                                <xsl:analyze-string regex="(\w*)([āūī])(\w*)" select=".">
+                                    <xsl:matching-substring>
+                                        <!-- the string contanis long vowls -->
+                                        <!--<xsl:message>
                                         <xsl:text>the string contains long vowels</xsl:text>
                                     </xsl:message>-->
-                                    <xsl:choose>
-                                        <xsl:when test="string-length(regex-group(1)) = 1">
-                                            <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                                <xsl:with-param name="p_input" select="regex-group(1)"/>
-                                            </xsl:call-template>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                                <xsl:with-param name="p_input" select="regex-group(1)"/>
-                                            </xsl:call-template>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                    <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                        <xsl:with-param name="p_input" select="regex-group(2)"/>
-                                    </xsl:call-template>
-                                    <xsl:choose>
-                                        <xsl:when test="string-length(regex-group(3)) = 1">
-                                            <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                                <xsl:with-param name="p_input" select="regex-group(3)"/>
-                                            </xsl:call-template>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:call-template name="f-2_string-arabic-split-radicals">
-                                                <xsl:with-param name="p_input" select="regex-group(3)"/>
-                                            </xsl:call-template>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:matching-substring>
-                                <xsl:non-matching-substring>
-                                    <!-- the string does not contain long vowels -->
-                                    <xsl:choose>
-                                        <xsl:when test="string-length(.) = 2">
-                                            <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
-                                                <xsl:with-param name="p_input" select="."/>
-                                            </xsl:call-template>
-                                        </xsl:when>
-                                        <!-- how to deal with strings of more then 2 consonants? -->
-                                        <!-- let us assume that a string of 4 consonants of the pattern abab stands for a single Arabic letter with a shadda -->
-                                        <xsl:when test="string-length(.) = 4 and substring(., 1, 2) = substring(., 3, 2)">
-                                            <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
-                                                <xsl:with-param name="p_input" select="substring(., 1, 2)"/>
-                                            </xsl:call-template>
-                                        </xsl:when>
-                                        <xsl:when test="string-length(.) = 3">
-                                            <!-- check if the first two letters fit a single letter: f-3_string-arabic-transliterate-double-characters returns a single tei:w node -->
-                                            <xsl:variable name="vFirstTwoLetters">
+                                        <xsl:choose>
+                                            <xsl:when test="string-length(regex-group(1)) = 1">
+                                                <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                                    <xsl:with-param name="p_input" select="regex-group(1)"/>
+                                                </xsl:call-template>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                    <xsl:with-param name="p_input" select="regex-group(1)"/>
+                                                </xsl:call-template>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                        <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                            <xsl:with-param name="p_input" select="regex-group(2)"/>
+                                        </xsl:call-template>
+                                        <xsl:choose>
+                                            <xsl:when test="string-length(regex-group(3)) = 1">
+                                                <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                                    <xsl:with-param name="p_input" select="regex-group(3)"/>
+                                                </xsl:call-template>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:call-template name="f-2_string-arabic-split-radicals">
+                                                    <xsl:with-param name="p_input" select="regex-group(3)"/>
+                                                </xsl:call-template>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:matching-substring>
+                                    <xsl:non-matching-substring>
+                                        <!-- the string does not contain long vowels -->
+                                        <xsl:choose>
+                                            <xsl:when test="string-length(.) = 2">
+                                                <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
+                                                    <xsl:with-param name="p_input" select="."/>
+                                                </xsl:call-template>
+                                            </xsl:when>
+                                            <!-- how to deal with strings of more then 2 consonants? -->
+                                            <!-- let us assume that a string of 4 consonants of the pattern abab stands for a single Arabic letter with a shadda -->
+                                            <xsl:when test="string-length(.) = 4 and substring(., 1, 2) = substring(., 3, 2)">
                                                 <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
                                                     <xsl:with-param name="p_input" select="substring(., 1, 2)"/>
                                                 </xsl:call-template>
-                                            </xsl:variable>
-                                            <xsl:choose>
-                                                <xsl:when test="count($vFirstTwoLetters/tei:c) = 1">
-                                                    <xsl:copy-of select="$vFirstTwoLetters/tei:c"/>
-                                                    <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                                        <xsl:with-param name="p_input" select="substring(., 3, 1)"/>
-                                                    </xsl:call-template>
-                                                </xsl:when>
-                                                <!-- otherwise it must be the other way around as there are no combinations of three Arabic consonants without a vowel -->
-                                                <xsl:otherwise>
-                                                    <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
-                                                        <xsl:with-param name="p_input" select="substring(., 1, 1)"/>
-                                                    </xsl:call-template>
+                                            </xsl:when>
+                                            <xsl:when test="string-length(.) = 3">
+                                                <!-- check if the first two letters fit a single letter: f-3_string-arabic-transliterate-double-characters returns a single tei:w node -->
+                                                <xsl:variable name="vFirstTwoLetters">
                                                     <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
-                                                        <xsl:with-param name="p_input" select="substring(., 2, 2)"/>
+                                                        <xsl:with-param name="p_input" select="substring(., 1, 2)"/>
                                                     </xsl:call-template>
-                                                </xsl:otherwise>
-                                            </xsl:choose>
-                                        </xsl:when>
-                                        <xsl:otherwise>
-                                            <xsl:message error-code="1">
-                                                <xsl:text>The string </xsl:text>
-                                                <xsl:value-of select="."/>
-                                                <xsl:text> comprises more than 2 consonants</xsl:text>
-                                            </xsl:message>
-                                        </xsl:otherwise>
-                                    </xsl:choose>
-                                </xsl:non-matching-substring>
-                            </xsl:analyze-string>
-                        </xsl:otherwise>
-                    </xsl:choose>
-                </xsl:for-each>
-            </xsl:otherwise>
-        </xsl:choose>
+                                                </xsl:variable>
+                                                <xsl:choose>
+                                                    <xsl:when test="count($vFirstTwoLetters/tei:c) = 1">
+                                                        <xsl:copy-of select="$vFirstTwoLetters/tei:c"/>
+                                                        <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                                            <xsl:with-param name="p_input" select="substring(., 3, 1)"/>
+                                                        </xsl:call-template>
+                                                    </xsl:when>
+                                                    <!-- otherwise it must be the other way around as there are no combinations of three Arabic consonants without a vowel -->
+                                                    <xsl:otherwise>
+                                                        <xsl:call-template name="f-4_string-arabic-transliterate-single-characters">
+                                                            <xsl:with-param name="p_input" select="substring(., 1, 1)"/>
+                                                        </xsl:call-template>
+                                                        <xsl:call-template name="f-3_string-arabic-transliterate-double-characters">
+                                                            <xsl:with-param name="p_input" select="substring(., 2, 2)"/>
+                                                        </xsl:call-template>
+                                                    </xsl:otherwise>
+                                                </xsl:choose>
+                                            </xsl:when>
+                                            <xsl:otherwise>
+                                                <xsl:message error-code="1">
+                                                    <xsl:text>The string "</xsl:text>
+                                                    <xsl:value-of select="."/>
+                                                    <xsl:text>" comprises more than 2 consonants</xsl:text>
+                                                </xsl:message>
+                                            </xsl:otherwise>
+                                        </xsl:choose>
+                                    </xsl:non-matching-substring>
+                                </xsl:analyze-string>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:for-each>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
         <xsl:if test="$p_debug = true()">
             <xsl:message>
-                <xsl:text>outut of splitting and transliteration: </xsl:text>
+                <xsl:text>output of splitting and transliteration: </xsl:text>
                 <xsl:for-each select="$v_output/tei:c">
                     <xsl:value-of select="."/>
                     <xsl:if test="position() != last()">
@@ -621,10 +716,26 @@
             </xsl:message>
         </xsl:if>
         <xsl:variable name="v_output">
-            <xsl:element name="tei:c">
-                <xsl:attribute name="xml:lang" select="'ar'"/>
-                <xsl:value-of select="translate($p_input, $v_string-transcribe-ijmes-from, $v_string-transcribe-arabic-to)"/>
-            </xsl:element>
+            <xsl:choose>
+                <xsl:when test="contains($v_string-transcribe-ijmes-from, $p_input)">
+                    <xsl:element name="tei:c">
+                        <xsl:attribute name="xml:lang" select="'ar'"/>
+                        <xsl:value-of select="translate($p_input, $v_string-transcribe-ijmes-from, $v_string-transcribe-arabic-to)"/>
+                    </xsl:element>
+                </xsl:when>
+                <!-- input is not part of the Arabic alphabet -->
+                <xsl:otherwise>
+                    <xsl:message error-code="3">
+                        <xsl:text>the letter "</xsl:text>
+                        <xsl:value-of select="$p_input"/>
+                        <xsl:text>" is not part of the Arabic alphabet</xsl:text>
+                        <xsl:element name="tei:c">
+                            <xsl:attribute name="xml:lang" select="'und-Latn'"/>
+                            <xsl:value-of select="$p_input"/>
+                        </xsl:element>
+                    </xsl:message>
+                </xsl:otherwise>
+            </xsl:choose>
         </xsl:variable>
         <xsl:if test="$p_debug = true()">
             <xsl:message>
