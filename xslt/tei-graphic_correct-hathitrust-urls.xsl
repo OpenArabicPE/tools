@@ -10,7 +10,8 @@
     
      <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     
-    <xsl:param name="p_hathitrust-correction-factor" as="xs:integer" select="0"/>
+    <xsl:param name="p_hathitrust-correction-factor" select="2" as="xs:integer"/>
+    <xsl:param name="p_positive" select="false()"/>
     
     <!-- identity transform -->
     <xsl:template match="node() | @*">
@@ -42,6 +43,16 @@
             </xsl:choose>-->
             <xsl:value-of select="$p_hathitrust-correction-factor"/>
         </xsl:variable>
+        <xsl:variable name="v_hathitrust-seq">
+            <xsl:choose>
+                <xsl:when test="$p_positive = true()">
+                    <xsl:value-of select="$v_hathitrust-seq + $p_hathitrust-correction-factor"/>
+                </xsl:when>
+                <xsl:when test="$p_positive = false()">
+                    <xsl:value-of select="$v_hathitrust-seq - $p_hathitrust-correction-factor"/>
+                </xsl:when>
+            </xsl:choose>
+        </xsl:variable>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <!-- document changes -->
@@ -56,7 +67,7 @@
                 </xsl:choose>
             </xsl:attribute>
             <!-- fix URL -->
-            <xsl:attribute name="url" select="concat($v_hathitrust-base-url, $v_hathitrust-seq + $v_hathitrust-correction-factor)"/>
+            <xsl:attribute name="url" select="concat($v_hathitrust-base-url, $v_hathitrust-seq)"/>
             <xsl:apply-templates/>
         </xsl:copy>
     </xsl:template>
