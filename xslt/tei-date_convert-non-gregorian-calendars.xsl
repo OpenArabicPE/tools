@@ -17,8 +17,7 @@
     <xsl:template match="tei:date[string-length(@when-custom) = 10]">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:choose>
-                <xsl:when test="not(@when) or $p_update-existing-dates = true()">
+                <xsl:if test="not(@when) or $p_update-existing-dates = true()">
                     <!-- add documentation of change -->
                     <xsl:choose>
                         <xsl:when test="not(@change)">
@@ -31,15 +30,15 @@
                     <xsl:attribute name="when">
                         <xsl:value-of select="oape:date-convert-calendars(@when-custom, @datingMethod, '#cal_gregorian')"/>
                     </xsl:attribute>
-                </xsl:when>
-            </xsl:choose>
+                </xsl:if>
             <xsl:apply-templates/>
         </xsl:copy>
     </xsl:template>
     <!-- convert hijri years only -->
-    <xsl:template match="tei:date[string-length(@when-custom) = 4][@datingMethod = '#cal_islamic'][not(@when)][not(@notBefore)]">
+    <xsl:template match="tei:date[string-length(@when-custom) = 4]">
         <xsl:copy>
-            <xsl:apply-templates select="@*"/>
+            <!-- this should remove faulty attributes -->
+            <xsl:apply-templates select="@*[not( name() =  ('notBefore', 'notAfter'))]"/> 
             <!-- add documentation of change -->
             <xsl:choose>
                 <xsl:when test="not(@change)">
@@ -49,18 +48,27 @@
                     <xsl:apply-templates mode="m_documentation" select="@change"/>
                 </xsl:otherwise>
             </xsl:choose>
-            <xsl:variable name="v_date-h-1" select="concat(@when-custom, '-01-01')"/>
-            <xsl:variable name="v_date-g-1" select="oape:date-convert-calendars($v_date-h-1, '#cal_islamic', '#cal_gregorian')"/>
-            <xsl:variable name="v_date-h-2" select="concat(@when-custom, '-12-29')"/>
-            <xsl:variable name="v_date-g-2" select="oape:date-convert-calendars($v_date-h-2, '#cal_islamic', '#cal_gregorian')"/>
+            <xsl:variable name="v_date-onset-custom" select="concat(@when-custom, '-01-01')"/>
+            <xsl:variable name="v_date-onset-gregorian" select="oape:date-convert-calendars($v_date-onset-custom, @datingMethod, '#cal_gregorian')"/>
+            <xsl:variable name="v_date-terminus-custom">
+                <xsl:choose>
+                    <xsl:when test="@datingMethod = ('#cal_islamic', '#cal_ottomanfiscal')">
+                        <xsl:value-of select="concat(@when-custom, '-12-29')"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:value-of select="concat(@when-custom, '-12-31')"/>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:variable>
+            <xsl:variable name="v_date-terminus-gregorian" select="oape:date-convert-calendars($v_date-terminus-custom, @datingMethod, '#cal_gregorian')"/>
             <!-- test if the Hijrī year spans more than one Gregorian year (this is not the case for 1295, 1329  -->
             <xsl:choose>
-                <xsl:when test="substring($v_date-g-1, 1, 4) = substring($v_date-g-2, 1, 4)">
-                    <xsl:attribute name="when" select="substring($v_date-g-1, 1, 4)"/>
+                <xsl:when test="substring($v_date-onset-gregorian, 1, 4) = substring($v_date-terminus-gregorian, 1, 4)">
+                    <xsl:attribute name="when" select="substring($v_date-onset-gregorian, 1, 4)"/>
                 </xsl:when>
                 <xsl:otherwise>
-                    <xsl:attribute name="notBefore" select="$v_date-g-1"/>
-                    <xsl:attribute name="notAfter" select="$v_date-g-2"/>
+                    <xsl:attribute name="from" select="$v_date-onset-gregorian"/>
+                    <xsl:attribute name="to" select="$v_date-terminus-gregorian"/>
                 </xsl:otherwise>
             </xsl:choose>
             <xsl:apply-templates/>
