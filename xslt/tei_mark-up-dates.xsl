@@ -4,8 +4,8 @@
     <!-- this stylesheets tries to find and mark-up dates -->
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- include dating functions -->
-    <!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
-    <xsl:include href="/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
+    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>
+    <!--    <xsl:include href="/Users/Shared/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
     <!-- identify the author of the change by means of a @xml:id -->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- this param defines a threshold under which no tei:num/@value will be wrapped in tei:date -->
@@ -16,7 +16,6 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    
     <!-- debugging -->
     <xsl:template match="/">
         <xsl:copy>
@@ -44,18 +43,15 @@
     <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]" priority="10">
         <xsl:copy-of select="oape:find-dates(., $p_id-change)"/>
     </xsl:template>
-    
     <xsl:template match="tei:text//text()[not(ancestor::tei:date | ancestor::tei:num)]" priority="0">
         <xsl:variable name="v_preceding-sibling" select="preceding-sibling::node()[1]"/>
-        <xsl:variable name="v_preceding-sibling-is-num"
-            select="
+        <xsl:variable name="v_preceding-sibling-is-num" select="
                 if ($v_preceding-sibling[self::tei:num]) then
                     (true())
                 else
                     (false())"/>
         <xsl:variable name="v_following-sibling" select="following-sibling::node()[1]"/>
-        <xsl:variable name="v_following-sibling-is-num"
-            select="
+        <xsl:variable name="v_following-sibling-is-num" select="
                 if ($v_following-sibling[self::tei:num]) then
                     (true())
                 else
@@ -171,12 +167,26 @@
         </xsl:element>
     </xsl:template>
     <!-- add machine-readable data to existing date-nodes -->
-    <xsl:template match="tei:date[@calendar]">
-        <xsl:variable name="v_lang" select="
-                if (@xml:lang) then
-                    (@xml:lang)
-                else
-                    (ancestor::note[@xml:lang][1]/@xml:lang)"/>
+    <xsl:template match="tei:date">
+        <xsl:variable name="v_lang">
+            <xsl:choose>
+                <xsl:when test="@xml:lang">
+                    <xsl:value-of select="@xml:lang"/>
+                </xsl:when>
+                <xsl:when test="ancestor::node()/@xml:lang">
+                    <xsl:value-of select="ancestor::node()[@xml:lang][1]/@xml:lang"/>
+                </xsl:when>
+                <!-- default to English -->
+                <xsl:otherwise>
+                    <xsl:value-of select="'en'"/>
+                </xsl:otherwise>
+            </xsl:choose>
+        </xsl:variable>
+        <xsl:if test="$p_debug = true()">
+            <xsl:message>
+                <xsl:value-of select="$v_lang"/>
+            </xsl:message>
+        </xsl:if>
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:choose>
@@ -185,28 +195,52 @@
                 <!-- if @when-custom,  @when etc. are supplied, nothing should be done -->
                 <xsl:when test="@when-custom, @when, @from, @to"/>
                 <xsl:otherwise>
-                    <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(., $v_lang, @calendar)"/>
+                    <xsl:variable name="v_calendar">
+                        <xsl:choose>
+                            <xsl:when test="@calendar">
+                                <xsl:value-of select="@calendar"/>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <xsl:value-of select="'#cal_gregorian'"/>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                    </xsl:variable>
+                    <!-- assume that unmarked calendars default to gregorian -->
+                    <xsl:variable name="v_date-normalised" select="oape:date-normalise-input(., $v_lang, $v_calendar)"/>
                     <!-- check if the input can be normalised to ISO format -->
-                    <xsl:if test="matches($v_date-normalised, '^\d{4}-\d{2}-\d{2}$')">
-                        <!-- convert normalised input to gregorian -->
-                        <xsl:variable name="v_date-gregorian" select="oape:date-convert-calendars($v_date-normalised, @calendar, '#cal_gregorian')"/>
-                        <xsl:if test="not(@when-custom) and not(@calendar = '#cal_gregorian')">
-                            <xsl:attribute name="when-custom" select="$v_date-normalised"/>
-                            <xsl:attribute name="datingMethod" select="@calendar"/>
-                        </xsl:if>
-                        <xsl:attribute name="when" select="$v_date-gregorian"/>
-                        <!-- make sure that documentation is only toggled after actual changes -->
-                        <xsl:if test="(not(@when-custom = $v_date-normalised) or not(@when = $v_date-gregorian))">
-                            <xsl:choose>
-                                <xsl:when test="@change">
-                                    <xsl:apply-templates mode="m_documentation" select="@change"/>
-                                </xsl:when>
-                                <xsl:otherwise>
-                                    <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                                </xsl:otherwise>
-                            </xsl:choose>
-                        </xsl:if>
-                    </xsl:if>
+                    <xsl:choose>
+                        <xsl:when test="matches($v_date-normalised, '^\d{4}-\d{2}-\d{2}$|^\d{4}$')">
+                            <!-- convert normalised input to gregorian -->
+                            <xsl:variable name="v_date-gregorian">
+                                <xsl:choose>
+                                    <xsl:when test="matches($v_date-normalised, '^\d{4}-\d{2}-\d{2}$')">
+                                        <xsl:copy-of select="oape:date-convert-calendars($v_date-normalised, $v_calendar, '#cal_gregorian')"/>
+                                    </xsl:when>
+                                    <xsl:when test="matches($v_date-normalised, '^\d{4}$')">
+                                        <xsl:copy-of select="oape:date-convert-years-between-calendars($v_date-normalised, $v_calendar, '#cal_gregorian')"/>
+                                    </xsl:when>
+                                </xsl:choose>
+                            </xsl:variable>
+                            <xsl:if test="not(@when-custom) and not($v_calendar = '#cal_gregorian')">
+                                <xsl:attribute name="when-custom" select="$v_date-normalised"/>
+                                <xsl:attribute name="datingMethod" select="$v_calendar"/>
+                            </xsl:if>
+                            <xsl:if test="matches($v_date-gregorian, '^\d{4}-\d{2}-\d{2}$|^\d{4}$')">
+                                <xsl:attribute name="when" select="$v_date-gregorian"/>
+                            </xsl:if>
+                            <!-- make sure that documentation is only toggled after actual changes -->
+                            <xsl:if test="(not(@when-custom = $v_date-normalised) or not(@when = $v_date-gregorian))">
+                                <xsl:choose>
+                                    <xsl:when test="@change">
+                                        <xsl:apply-templates mode="m_documentation" select="@change"/>
+                                    </xsl:when>
+                                    <xsl:otherwise>
+                                        <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
+                                    </xsl:otherwise>
+                                </xsl:choose>
+                            </xsl:if>
+                        </xsl:when>
+                    </xsl:choose>
                 </xsl:otherwise>
             </xsl:choose>
             <xsl:apply-templates select="node()"/>
