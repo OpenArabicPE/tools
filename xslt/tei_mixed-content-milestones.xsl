@@ -70,9 +70,10 @@
         <xsl:param name="p_node"/>
         <xsl:choose>
             <xsl:when test="$p_node[text()] and $p_node[child::element()[not(child::text())]]">
-                <table>
+                <xsl:element name="table">
+                    <xsl:attribute name="type" select="'mixedContent'"/>
                     <xsl:apply-templates mode="m_preprocess-milestones" select="$p_node"/>
-                </table>
+                </xsl:element>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:value-of select="'NA'"/>
@@ -89,19 +90,23 @@
         <!-- could also be: string-length($p_text) -->
         <xsl:variable name="v_position-milestone" select="count(tokenize($v_text, '[\W]+'))"/>
         <!--<xsl:if test="$v_string-length gt 0">-->
-        <row>
-            <cell n="text">
+        <xsl:element name="row">
+            <xsl:attribute name="type" select="'data'"/>
+            <xsl:element name="cell">
+                <xsl:attribute name="n" select="'text'"/>
                 <xsl:copy-of select="$p_text"/>
-            </cell>
-            <cell n="index">
-<!--                <xsl:if test="exists($p_milestone)">-->
-                    <xsl:value-of select="$v_position-milestone"/>
+            </xsl:element>
+            <xsl:element name="cell">
+                <xsl:attribute name="n" select="'index'"/>
+                <!--                <xsl:if test="exists($p_milestone)">-->
+                <xsl:value-of select="$v_position-milestone"/>
                 <!--</xsl:if>-->
-            </cell>
-            <cell n="milestone">
+            </xsl:element>
+            <xsl:element name="cell">
+                <xsl:attribute name="n" select="'milestone'"/>
                 <xsl:copy-of select="$p_milestone"/>
-            </cell>
-        </row>
+            </xsl:element>
+        </xsl:element>
         <!--</xsl:if>-->
     </xsl:template>
     <xsl:template match="node() | @*" mode="m_preprocess-milestones">
