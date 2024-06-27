@@ -4,6 +4,12 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- this stylesheet wraps references to periodical titles that start with *jarīda* or *majalla* in a <bibl> and <title> tag  -->
     <!-- NOTE: as always, this doesn't work with mixed-content nodes, such as a <p> interspersed with milestone elements, such as <lb/> -->
+    <!-- process
+        1. find mixed-content nodes with milestones in them
+        2. check if they also contain other child nodes
+        3. if so split them along the non-milestone children
+        4. pre-process the resulting mixed-content nodes
+    -->
     <!-- Problems:
        - titles that do not start with "al-" are not caught
    -->
