@@ -119,19 +119,19 @@
     <xsl:template match="node()[text()][child::element()[not(child::text())]]" mode="m_preprocess-milestones">
         <xsl:variable name="v_current-name" select="name()"/>
         <xsl:call-template name="t_text-milestones">
-            <xsl:with-param name="p_text" select="node()[local-name() = ('pb', 'cb', 'lb')][1]/preceding-sibling::node()"/>
-            <xsl:with-param name="p_milestone" select="node()[local-name() = ('pb', 'cb', 'lb')][1]"/>
+            <xsl:with-param name="p_text" select="child::element()[not(child::text())][1]/preceding-sibling::node()"/>
+            <xsl:with-param name="p_milestone" select="child::element()[not(child::text())][1]"/>
         </xsl:call-template>
         <!-- I have to continue with the rest of element - I store it into another variable 
             an encapsulate it with the element of the same name. Then it is processing
             in standard way. -->
         <xsl:variable name="v_remainder">
             <xsl:element name="{$v_current-name}">
-                <xsl:copy-of select="node()[local-name() = ('pb', 'cb', 'lb')][1]/following-sibling::node()"/>
+                <xsl:copy-of select="child::element()[not(child::text())][1]/following-sibling::node()"/>
             </xsl:element>
         </xsl:variable>
         <xsl:choose>
-            <xsl:when test="$v_remainder/node()/node()[local-name() = ('pb', 'cb', 'lb')]">
+            <xsl:when test="$v_remainder/node()/child::element()[not(child::text())]">
                 <xsl:apply-templates mode="m_preprocess-milestones" select="$v_remainder"/>
             </xsl:when>
             <xsl:otherwise>
