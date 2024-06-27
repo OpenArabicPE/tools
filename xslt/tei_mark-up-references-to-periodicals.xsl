@@ -14,50 +14,57 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template name="t_text-milestones">
+    <xsl:template match="text()[ancestor::tei:text][not(ancestor::tei:title | ancestor::tei:bibl)]">
+        <xsl:copy-of select="oape:find-references-to-periodicals(.)"/>
+    </xsl:template>
+    <!-- dealing with milestones -->
+    <xsl:template match="*[text()[not(matches(., '^\s*$'))]][tei:pb | tei:cb | tei:lb]">
+        <xsl:variable name="v_preprocessed" select="oape:milestones-to-table(.)"/>
+        <xsl:variable name="v_compiled-text">
+            <xsl:value-of select="$v_preprocessed/descendant::tei:cell[@n = 'text']"/>
+        </xsl:variable>
+        <xsl:variable name="v_marked-up" select="oape:find-references-to-periodicals($v_compiled-text)"/>
+        <xsl:copy>
+            <xsl:apply-templates mode="m_identity-transform" select="@*"/>
+            <xsl:copy-of select="$v_marked-up"/>
+        </xsl:copy>
+        <xsl:message>
+            <xsl:copy-of select="$v_marked-up"/>
+        </xsl:message>
+    </xsl:template>
+    <!-- simple wrapper function. Output is a simple TEI table with three columns -->
+    <xsl:function name="oape:milestones-to-table">
+        <xsl:param name="p_node"/>
+        <xsl:choose>
+            <xsl:when test="$p_node[text()] and $p_node[tei:pb | tei:cb | tei:lb]">
+                <table>
+                    <xsl:apply-templates mode="m_preprocess-milestones" select="$p_node"/>
+                </table>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="'NA'"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
+     <xsl:template name="t_text-milestones">
         <xsl:param name="p_text"/>
         <xsl:param name="p_milestone" select="$p_text/following-sibling::node()[1][local-name() = ('pb', 'cb', 'lb')]"/>
-        <xsl:variable name="v_string-length" select="string-length($p_text)"/>
+        <!-- some way of providing the position of the milestone -->
+        <!-- could also be: string-length($p_text) -->
+        <xsl:variable name="v_position-milestone" select="count(tokenize($p_text, '[\W]+'))"/>
         <!--<xsl:if test="$v_string-length gt 0">-->
         <row>
             <cell n="text">
                 <xsl:copy-of select="$p_text"/>
             </cell>
             <cell n="index">
-                <xsl:value-of select="$v_string-length"/>
+                <xsl:value-of select="$v_position-milestone"/>
             </cell>
             <cell n="milestone">
                 <xsl:copy-of select="$p_milestone"/>
             </cell>
         </row>
-        <xsl:message>
-            <xsl:text>Found text of </xsl:text>
-            <xsl:value-of select="$v_string-length"/>
-            <xsl:text> chars</xsl:text>
-            <xsl:if test="$p_milestone/name()">
-                <xsl:text>, followed by element </xsl:text>
-                <xsl:copy-of select="$p_milestone/name()"/>
-            </xsl:if>
-        </xsl:message>
         <!--</xsl:if>-->
-    </xsl:template>
-    <xsl:template match="text()[ancestor::tei:text][not(ancestor::tei:title | ancestor::tei:bibl)]">
-        <xsl:copy-of select="oape:find-references-to-periodicals(.)"/>
-    </xsl:template>
-    <xsl:template match="*[text()][tei:pb | tei:cb | tei:lb]">
-        <xsl:variable name="v_preprocessed">
-            <table>
-                <xsl:apply-templates mode="m_preprocess-milestones" select="."/>
-            </table>
-        </xsl:variable>
-        <xsl:variable name="v_compiled-text">
-            <xsl:value-of select="$v_preprocessed/descendant::tei:cell[@n = 'text']"/>
-        </xsl:variable>
-        <xsl:variable name="v_marked-up" select="oape:find-references-to-periodicals($v_compiled-text)"/>
-        <xsl:copy>
-            <xsl:apply-templates select="@*" mode="m_identity-transform"/>
-            <xsl:copy-of select="$v_marked-up"/>
-        </xsl:copy>
     </xsl:template>
     <xsl:template match="node() | @*" mode="m_preprocess-milestones">
         <xsl:copy>
@@ -67,9 +74,7 @@
     <xsl:template match="*[text()][tei:pb | tei:cb | tei:lb]" mode="m_preprocess-milestones">
         <xsl:variable name="v_current-name" select="name()"/>
         <xsl:call-template name="t_text-milestones">
-            <xsl:with-param name="p_text">
-                <xsl:apply-templates mode="m_identity-transform" select="node()[local-name() = ('pb', 'cb', 'lb')][1]/preceding-sibling::node()"/>
-            </xsl:with-param>
+            <xsl:with-param name="p_text" select="node()[local-name() = ('pb', 'cb', 'lb')][1]/preceding-sibling::node()"/>
             <xsl:with-param name="p_milestone" select="node()[local-name() = ('pb', 'cb', 'lb')][1]"/>
         </xsl:call-template>
         <!-- I have to continue with the rest of element - I store it into another variable 
