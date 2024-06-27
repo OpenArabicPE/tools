@@ -20,17 +20,35 @@
     <!-- dealing with milestones -->
     <xsl:template match="*[text()[not(matches(., '^\s*$'))]][tei:pb | tei:cb | tei:lb]">
         <xsl:variable name="v_preprocessed" select="oape:milestones-to-table(.)"/>
+        <xsl:message>
+            <xsl:text>$v_preprocessed: </xsl:text>
+            <xsl:copy-of select="$v_preprocessed"/>
+        </xsl:message>
         <xsl:variable name="v_compiled-text">
             <xsl:value-of select="$v_preprocessed/descendant::tei:cell[@n = 'text']"/>
         </xsl:variable>
+        <xsl:message>
+            <xsl:text>$v_compiled-text: </xsl:text>
+            <xsl:copy-of select="$v_compiled-text"/>
+        </xsl:message>
         <xsl:variable name="v_marked-up" select="oape:find-references-to-periodicals($v_compiled-text)"/>
+        <xsl:message>
+            <xsl:text>$v_marked-up: </xsl:text>
+            <xsl:copy-of select="$v_marked-up"/>
+        </xsl:message>
         <xsl:copy>
             <xsl:apply-templates mode="m_identity-transform" select="@*"/>
             <xsl:copy-of select="$v_marked-up"/>
         </xsl:copy>
-        <xsl:message>
-            <xsl:copy-of select="$v_marked-up"/>
-        </xsl:message>
+        <!-- debugging -->
+        <xsl:copy>
+            <xsl:apply-templates mode="m_identity-transform" select="@*"/>
+            <xsl:copy-of select="$v_preprocessed"/>
+        </xsl:copy>
+        <xsl:copy>
+            <xsl:apply-templates mode="m_identity-transform" select="@*"/>
+            <xsl:copy-of select="$v_compiled-text"/>
+        </xsl:copy>
     </xsl:template>
     <!-- simple wrapper function. Output is a simple TEI table with three columns -->
     <xsl:function name="oape:milestones-to-table">
@@ -46,12 +64,13 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:function>
-     <xsl:template name="t_text-milestones">
+    <xsl:template name="t_text-milestones">
         <xsl:param name="p_text"/>
         <xsl:param name="p_milestone" select="$p_text/following-sibling::node()[1][local-name() = ('pb', 'cb', 'lb')]"/>
+        <xsl:variable name="v_text" select="$p_text/text()"/>
         <!-- some way of providing the position of the milestone -->
         <!-- could also be: string-length($p_text) -->
-        <xsl:variable name="v_position-milestone" select="count(tokenize($p_text, '[\W]+'))"/>
+        <xsl:variable name="v_position-milestone" select="count(tokenize($v_text, '[\W]+'))"/>
         <!--<xsl:if test="$v_string-length gt 0">-->
         <row>
             <cell n="text">
@@ -71,29 +90,55 @@
             <xsl:apply-templates mode="m_preprocess-milestones" select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template match="*[text()][tei:pb | tei:cb | tei:lb]" mode="m_preprocess-milestones">
-        <xsl:variable name="v_current-name" select="name()"/>
+    <xsl:template match="text()" mode="m_preprocess-milestones">
         <xsl:call-template name="t_text-milestones">
-            <xsl:with-param name="p_text" select="node()[local-name() = ('pb', 'cb', 'lb')][1]/preceding-sibling::node()"/>
-            <xsl:with-param name="p_milestone" select="node()[local-name() = ('pb', 'cb', 'lb')][1]"/>
+            <xsl:with-param name="p_text" select="."/>
+            <xsl:with-param name="p_milestone" select="''"/>
         </xsl:call-template>
-        <!-- I have to continue with the rest of element - I store it into another variable 
-            an encapsulate it with the element of the same name. Then it is processing
-            in standard way. -->
-        <xsl:variable name="v_remainder">
-            <xsl:element name="{$v_current-name}">
-                <xsl:copy-of select="node()[local-name() = ('pb', 'cb', 'lb')][1]/following-sibling::node()"/>
-            </xsl:element>
-        </xsl:variable>
+    </xsl:template>
+    <!-- preprocess nodes with text and milestone children and nothing else! -->
+    <xsl:template match="node()[text()][tei:pb | tei:cb | tei:lb]" mode="m_preprocess-milestones">
+        <xsl:variable name="v_current-name" select="name()"/>
         <xsl:choose>
-            <xsl:when test="$v_remainder/node()/node()[local-name() = ('pb', 'cb', 'lb')]">
-                <xsl:apply-templates mode="m_preprocess-milestones" select="$v_remainder"/>
+            <xsl:when test="element()[not(local-name() = ('pb', 'cb', 'lb'))]">
+                <xsl:for-each-group group-starting-with="self::element()[not(local-name() = ('pb', 'cb', 'lb'))]" select="node()">
+                    <xsl:variable name="v_current-group">
+                        <xsl:element name="{$v_current-name}">
+                            <xsl:copy-of select="current-group()[position() != 1]"/>
+                        </xsl:element>
+                    </xsl:variable>
+                    <xsl:copy-of select="current-group()[position() = 1]"/>
+                    <xsl:apply-templates mode="m_preprocess-milestones" select="$v_current-group/node()"/>
+                    <!-- this indicates that this approach should be working -->
+                    <xsl:message>
+                        <xsl:copy-of select="$v_current-group/node()"/>
+                    </xsl:message>
+                </xsl:for-each-group>
             </xsl:when>
             <xsl:otherwise>
                 <xsl:call-template name="t_text-milestones">
-                    <xsl:with-param name="p_text" select="$v_remainder/node()/node()"/>
-                    <xsl:with-param name="p_milestone" select="''"/>
+                    <xsl:with-param name="p_text" select="node()[local-name() = ('pb', 'cb', 'lb')][1]/preceding-sibling::node()"/>
+                    <xsl:with-param name="p_milestone" select="node()[local-name() = ('pb', 'cb', 'lb')][1]"/>
                 </xsl:call-template>
+                <!-- I have to continue with the rest of element - I store it into another variable 
+            an encapsulate it with the element of the same name. Then it is processing
+            in standard way. -->
+                <xsl:variable name="v_remainder">
+                    <xsl:element name="{$v_current-name}">
+                        <xsl:copy-of select="node()[local-name() = ('pb', 'cb', 'lb')][1]/following-sibling::node()"/>
+                    </xsl:element>
+                </xsl:variable>
+                <xsl:choose>
+                    <xsl:when test="$v_remainder/node()/node()[local-name() = ('pb', 'cb', 'lb')]">
+                        <xsl:apply-templates mode="m_preprocess-milestones" select="$v_remainder"/>
+                    </xsl:when>
+                    <xsl:otherwise>
+                        <xsl:call-template name="t_text-milestones">
+                            <xsl:with-param name="p_text" select="$v_remainder/node()/node()"/>
+                            <xsl:with-param name="p_milestone" select="''"/>
+                        </xsl:call-template>
+                    </xsl:otherwise>
+                </xsl:choose>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
