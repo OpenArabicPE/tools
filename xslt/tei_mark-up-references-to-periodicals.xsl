@@ -25,9 +25,20 @@
     </xsl:template>
     <xsl:template match="tei:seg[@type = 'mixedContent']">
         <xsl:variable name="v_compiled">
-            <xsl:copy-of select="tei:seg[@type = 'text']/text()"/>
+            <xsl:apply-templates select="node()" mode="m_compile"/>
         </xsl:variable>
         <xsl:copy-of select="oape:find-references-to-periodicals($v_compiled)"/>
+    </xsl:template>
+    
+    <xsl:template match="node()" mode="m_compile">
+        <xsl:choose>
+            <xsl:when test="not(child::text())">
+                <xsl:text> </xsl:text>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy-of select="text()"/>
+            </xsl:otherwise>
+        </xsl:choose>
     </xsl:template>
     
     <!-- generate documentation of change -->
