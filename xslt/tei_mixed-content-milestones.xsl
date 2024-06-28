@@ -14,20 +14,33 @@
     <!-- 
         1. find mixed-content nodes with milestones in them
     -->
-    <xsl:template match="node()[child::text()[not(matches(., '^\s*$'))] and child::element()[not(child::text())]]">
-        <xsl:message>
-            <xsl:text>mixed-content node with milestones</xsl:text>
-        </xsl:message>
-        <!-- reproduce the element -->
-        <xsl:copy>
-            <!-- reproduce the attributes -->
-            <xsl:apply-templates mode="m_identity-transform" select="@*"/>
-            <!-- 
-        2. check if they also contain other child nodes
-    -->
-            <xsl:apply-templates mode="m_milestones-only" select="."/>
-        </xsl:copy>
+    <xsl:template match="node()[child::text()[not(matches(., '^\s*$'))]]">
+        <xsl:copy-of select="oape:resolve-mixed-content(.)"/>
     </xsl:template>
+    <!-- everything in functions -->
+    <xsl:function name="oape:resolve-mixed-content">
+        <xsl:param as="node()" name="p_node"/>
+        <xsl:choose>
+            <!-- 1. find mixed-content nodes with milestones in them -->
+            <xsl:when test="$p_node[child::text()[not(matches(., '^\s*$'))] and child::element()[not(child::text())]]">
+                <xsl:message>
+                    <xsl:text>mixed-content node with milestones</xsl:text>
+                </xsl:message>
+                <!-- reproduce the element -->
+                <xsl:copy select="$p_node">
+                    <!-- reproduce the attributes -->
+                    <xsl:apply-templates mode="m_identity-transform" select="$p_node/@*"/>
+                    <!-- 2. check if they also contain other child nodes -->
+                    <xsl:apply-templates mode="m_milestones-only" select="$p_node"/>
+                </xsl:copy>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:copy select="$p_node">
+                    <xsl:apply-templates mode="m_identity-transform" select="$p_node/@* | $p_node/node()"/>
+                </xsl:copy>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:function>
     <xsl:template match="node()[child::text()[not(matches(., '^\s*$'))] and child::element()[not(child::text())]]" mode="m_milestones-only">
         <xsl:message>
             <xsl:text>preprocessed mixed-content node with milestones</xsl:text>
@@ -61,16 +74,16 @@
                     <xsl:text>contains only milestone child nodes</xsl:text>
                 </xsl:message>
                 <!-- 4. pre-process the resulting mixed-content nodes -->
-                <xsl:copy-of select="oape:milestones-to-table(.)"/>
+                <xsl:copy-of select="oape:mixed-content-with-milestones-to-seg(.)"/>
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
     <!-- simple wrapper function. Output is a simple TEI table with three columns -->
-    <xsl:function name="oape:milestones-to-table">
+    <xsl:function name="oape:mixed-content-with-milestones-to-seg">
         <xsl:param name="p_node"/>
         <xsl:choose>
             <xsl:when test="$p_node[text()] and $p_node[child::element()[not(child::text())]]">
-                <xsl:element name="table">
+                <xsl:element name="seg">
                     <xsl:attribute name="type" select="'mixedContent'"/>
                     <xsl:apply-templates mode="m_preprocess-milestones" select="$p_node"/>
                 </xsl:element>
@@ -88,8 +101,7 @@
         </xsl:variable>
         <!-- some way of providing the position of the milestone -->
         <!-- could also be: string-length($p_text) -->
-        <xsl:variable name="v_position-milestone" select="count(tokenize($v_text, '[\W]+'))"/>
-        <!--<xsl:if test="$v_string-length gt 0">-->
+        <!--<xsl:variable name="v_position-milestone" select="count(tokenize($v_text, '[\W]+'))"/>
         <xsl:element name="row">
             <xsl:attribute name="type" select="'data'"/>
             <xsl:element name="cell">
@@ -98,16 +110,20 @@
             </xsl:element>
             <xsl:element name="cell">
                 <xsl:attribute name="n" select="'index'"/>
-                <!--                <xsl:if test="exists($p_milestone)">-->
+                <!-\-                <xsl:if test="exists($p_milestone)">-\->
                 <xsl:value-of select="$v_position-milestone"/>
-                <!--</xsl:if>-->
+                <!-\-</xsl:if>-\->
             </xsl:element>
             <xsl:element name="cell">
                 <xsl:attribute name="n" select="'milestone'"/>
                 <xsl:copy-of select="$p_milestone"/>
             </xsl:element>
+        </xsl:element>-->
+        <xsl:element name="seg">
+            <xsl:attribute name="type" select="'text'"/>
+            <xsl:copy-of select="$p_text"/>
         </xsl:element>
-        <!--</xsl:if>-->
+        <xsl:copy-of select="$p_milestone"/>
     </xsl:template>
     <xsl:template match="node() | @*" mode="m_preprocess-milestones">
         <xsl:copy>
