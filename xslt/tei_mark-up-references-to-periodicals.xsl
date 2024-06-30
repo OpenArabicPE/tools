@@ -23,7 +23,7 @@
     <xsl:template match="text()[ancestor::tei:text][not(ancestor::tei:title | ancestor::tei:bibl)]">
         <xsl:copy-of select="oape:find-references-to-periodicals(.)"/>
     </xsl:template>
-    <xsl:template match="tei:seg[@type = 'mixedContent']">
+    <xsl:template match="tei:seg[@type = 'mixedContent'][ancestor::tei:text]">
         <xsl:variable name="v_compiled">
             <xsl:apply-templates select="node()" mode="m_compile"/>
         </xsl:variable>
