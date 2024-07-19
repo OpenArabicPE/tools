@@ -4,8 +4,8 @@
     <!-- this stylesheets tries to find and mark-up dates -->
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- include dating functions -->
-    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>
-    <!--    <xsl:include href="/Users/Shared/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
+<!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
+        <xsl:include href="/Users/Shared/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
     <!-- identify the author of the change by means of a @xml:id -->
     <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- this param defines a threshold under which no tei:num/@value will be wrapped in tei:date -->
@@ -194,6 +194,7 @@
                 <xsl:when test="@calendar = '#cal_gregorian' and @when != ''"/>
                 <!-- if @when-custom,  @when etc. are supplied, nothing should be done -->
                 <xsl:when test="@when-custom, @when, @from, @to"/>
+                <xsl:when test="@notAfter, @notBefore"/>
                 <xsl:otherwise>
                     <xsl:variable name="v_calendar">
                         <xsl:choose>
