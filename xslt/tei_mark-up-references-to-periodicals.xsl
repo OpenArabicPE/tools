@@ -25,6 +25,7 @@
             <xsl:element name="tei:change">
                 <xsl:attribute name="when" select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#', $p_id-editor)"/>
+                <xsl:attribute name="xml:id" select="$p_id-change"/>
                 <xsl:attribute name="xml:lang" select="'en'"/>
                 <xsl:text>Automatically marked up references to periodicals with </xsl:text>
                 <tag>bibl type="periodical"</tag>
