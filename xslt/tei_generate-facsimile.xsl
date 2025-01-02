@@ -61,7 +61,7 @@
     </xsl:variable>-->
     <xsl:variable name="v_oclc" select="tei:TEI/tei:teiHeader/tei:fileDesc/tei:sourceDesc/tei:biblStruct[1]/descendant::tei:idno[@type='OCLC'][1]"/>
     <!-- volume in HathTrust collection: needs to be set -->
-    <xsl:variable name="vHathiTrustId" select="'umn.319510029968616'"/> <!-- vol. 2 -->
+    <xsl:param name="p_hathi-id" select="'uva.x030024004'"/>
     <!-- volume in EAP collection: needs to be set  -->
     <xsl:variable name="v_publication_eap" select="4" as="xs:integer"/>
     <xsl:param name="p_volume-setoff_eap" select="-1" as="xs:integer"/>
@@ -132,9 +132,9 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:variable>
-    
     <!-- URL to Hathi, this is always the same -->
-    <xsl:variable name="vFileUrlHathi" select="concat('https://babel.hathitrust.org/cgi/imgsrv/image?id=',$vHathiTrustId,';seq=')"/>
+    <xsl:variable name="v_url-hathi-base" select="'https://babel.hathitrust.org/cgi/imgsrv/image?id='"/>
+    <xsl:variable name="v_url-hathi" select="concat($v_url-hathi-base, $p_hathi-id, ';seq=')"/>
     
     <!-- URL to archive.sakhrit -->
     <xsl:variable name="v_url-sakhrit-base" select="'http://archive.alsharekh.org/MagazinePages/Magazine_JPG/'"/>
@@ -168,7 +168,7 @@
     <xsl:variable name="v_name-file">
         <xsl:choose>
             <xsl:when test="$p_file-local-hathi = true()">
-                <xsl:value-of select="concat(translate($vHathiTrustId,'.','-'),'-img_')"/>
+                <xsl:value-of select="concat(translate($p_hathi-id,'.','-'),'-img_')"/>
             </xsl:when>
             <!--<xsl:when test="lower-case($p_periodical) = 'muqtabas'">
                 <xsl:value-of select="concat(translate($vHathiTrustId,'.','-'),'-img_')"/>
@@ -340,7 +340,7 @@
             <xsl:if test="$p_file-hathi = true()">
             <xsl:element name="tei:graphic">
                 <xsl:attribute name="xml:id" select="concat($v_id-facs,$p_page-start,'-g_3')"/>
-                <xsl:attribute name="url" select="concat($vFileUrlHathi,$p_page-start + $p_image-setoff_hathi)"/>
+                <xsl:attribute name="url" select="concat($v_url-hathi, $p_page-start + $p_image-setoff_hathi)"/>
                 <xsl:attribute name="mimeType" select="'image/jpeg'"/>
             </xsl:element>
             </xsl:if>
