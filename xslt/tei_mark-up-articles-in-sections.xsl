@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xsl:stylesheet exclude-result-prefixes="xs" version="3.0" xmlns:tei="http://www.tei-c.org/ns/1.0"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+<xsl:stylesheet exclude-result-prefixes="xs" version="3.0" xmlns:tei="http://www.tei-c.org/ns/1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns="http://www.tei-c.org/ns/1.0" xpath-default-namespace="http://www.tei-c.org/ns/1.0">
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- identify the author of the change by means of a @xml:id -->
     <!--    <xsl:param name="p_id-editor" select="'pers_TG'"/>-->
@@ -12,8 +12,7 @@
             <xsl:apply-templates select="@* | node()"/>
         </xsl:copy>
     </xsl:template>
-    <xsl:template
-        match="tei:div[@type = 'section'][not(ancestor::tei:div[@type = ('article', 'item')])]">
+    <xsl:template match="tei:div[@type = 'section'][not(ancestor::tei:div[@type = ('article', 'item')])]">
         <xsl:if test="$p_verbose = true()">
             <xsl:message>
                 <xsl:text>Found a section div</xsl:text>
@@ -22,17 +21,16 @@
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
             <xsl:choose>
-                <!-- code for Lughat al-ʿArab -->
-                <xsl:when test="tei:p[tei:hi[@style = 'color:red;']]">
+                <!-- code for Lughat al-ʿArab: not sure how this ever worked -->
+                <!--<xsl:when test="tei:p[tei:hi[@style = 'color:red;']]">
                     <xsl:if test="$p_verbose = true()">
                         <xsl:message>
                             <xsl:text>Found p children that begin with a hi</xsl:text>
                         </xsl:message>
                     </xsl:if>
-                    <!-- reproduce head of the section -->
+                    <!-\- reproduce head of the section -\->
                     <xsl:apply-templates select="tei:head"/>
-                    <xsl:for-each-group group-starting-with=".[tei:hi[@style = 'color:red;']]"
-                        select="node()">
+                    <xsl:for-each-group group-starting-with=".[tei:hi[@style = 'color:red;']]" select="node()">
                         <xsl:if test="$p_verbose = true()">
                             <xsl:message>
                                 <xsl:text>Create a new div</xsl:text>
@@ -41,15 +39,15 @@
                         <xsl:element name="tei:div">
                             <xsl:attribute name="type" select="'item'"/>
                             <xsl:attribute name="change" select="concat('#', $p_id-change)"/>
-                            <!-- head -->
+                            <!-\- head -\->
                             <xsl:apply-templates select="current-group()/descendant-or-self::tei:p[tei:hi[@style = 'color:red;']]" mode="m_convert-p-to-head"/>
-                            <!-- content of div: supress duplicate output of the first p child -->
+                            <!-\- content of div: supress duplicate output of the first p child -\->
                             <xsl:apply-templates select="current-group()[not(descendant-or-self::tei:p[tei:hi[@style = 'color:red;']])]"/>
                         </xsl:element>
                     </xsl:for-each-group>
-                </xsl:when>
-                <xsl:when
-                    test="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1][preceding-sibling::tei:head]">
+                </xsl:when>-->
+                <!-- based on length of first paragraph -->
+                <xsl:when test="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1][preceding-sibling::tei:head]">
                     <xsl:if test="$p_verbose = true()">
                         <xsl:message>
                             <xsl:text>Found short p immediately after the head</xsl:text>
@@ -57,15 +55,64 @@
                     </xsl:if>
                     <xsl:apply-templates select="tei:head"/>
                     <!-- assume that the first paragraph is also a short one -->
-                    <xsl:apply-templates mode="m_group-divs"
-                        select="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]"
-                    />
+                    <xsl:apply-templates mode="m_group-divs" select="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]"/>
                 </xsl:when>
+                <!-- al-Manār:
+                    - a single <p> child
+                -->
+                <xsl:when test="count(tei:p) = 1 or (count(tei:div[@type = 'item']) = 1 and count(tei:div/tei:p) = 1)">
+                    <!--                    <xsl:apply-templates select="tei:head"/>-->
+                    <xsl:apply-templates select="tei:p/preceding-sibling::node() | tei:div/preceding-sibling::node()"/>
+                    <!-- temporary variable to split the content -->
+                    <xsl:variable name="v_temp">
+                        <xsl:for-each select="tei:p/node() | tei:div/tei:p/node()">
+                            <xsl:choose>
+                                <xsl:when test="self::text()">
+                                    <!--                                        <xsl:message terminate="yes"/>-->
+                                    <xsl:analyze-string select="." regex="(\*\s*){{3}}">
+                                        <xsl:matching-substring>
+                                            <ab><xsl:value-of select="normalize-space(.)"/></ab>
+                                        </xsl:matching-substring>
+                                        <xsl:non-matching-substring>
+                                            <seg type="temp">
+                                                <xsl:copy-of select="."/>
+                                            </seg>
+                                        </xsl:non-matching-substring>
+                                    </xsl:analyze-string>
+                                </xsl:when>
+                                <xsl:otherwise>
+                                    <seg type="temp">
+                                        <xsl:copy-of select="."/>
+                                    </seg>
+                                </xsl:otherwise>
+                            </xsl:choose>
+                        </xsl:for-each>
+                    </xsl:variable>
+                    <xsl:for-each-group select="$v_temp/node()" group-ending-with="self::tei:ab">
+                        <xsl:if test="$p_verbose = true()">
+                            <xsl:message>
+                                <xsl:text>Create a new div</xsl:text>
+                            </xsl:message>
+                        </xsl:if>
+                        <div type="item" subtype="article">
+                            <!--                            <xsl:attribute name="change" select="concat('#', $p_id-change)"/>-->
+                            <p>
+                                <xsl:apply-templates select="current-group()"/>
+                            </p>
+                        </div>
+                    </xsl:for-each-group>
+                    <xsl:apply-templates select="tei:p/following-sibling::node() | tei:div/following-sibling::node()"/>
+                </xsl:when>
+                <!-- fall back -->
                 <xsl:otherwise>
                     <xsl:apply-templates/>
                 </xsl:otherwise>
             </xsl:choose>
+<!--            <xsl:apply-templates select="tei:byline"/>-->
         </xsl:copy>
+    </xsl:template>
+    <xsl:template match="tei:seg[@type = 'temp']">
+        <xsl:apply-templates/>
     </xsl:template>
     <xsl:template match="tei:p" mode="m_convert-p-to-head">
         <xsl:element name="tei:head">
@@ -74,9 +121,7 @@
             <xsl:apply-templates/>
         </xsl:element>
     </xsl:template>
-    
-    <xsl:template match="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length]"
-        mode="m_group-divs">
+    <xsl:template match="tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length]" mode="m_group-divs">
         <!--<xsl:message>
             <xsl:value-of select="."/>
         </xsl:message>-->
@@ -90,26 +135,21 @@
             </xsl:element>
             <!-- following paragraphs until the next the next short paragraph. In case there is no following short paragraph everything should be reproduced -->
             <!--            <xsl:apply-templates select="following-sibling::node()[. &lt;&lt; current()/following-sibling::tei:p[string-length( replace(.,'\W','')) &lt;= $p_string-length][1]]"/>-->
-            <xsl:apply-templates
-                select="
+            <xsl:apply-templates select="
                     if (following-sibling::tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]) then
                         (following-sibling::node()[. &lt;&lt; current()/following-sibling::tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]])
                     else
-                        (following-sibling::node())"
-            />
+                        (following-sibling::node())"/>
         </xsl:element>
         <!-- go to the next article -->
-        <xsl:apply-templates mode="m_group-divs"
-            select="following-sibling::tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]"
-        />
+        <xsl:apply-templates mode="m_group-divs" select="following-sibling::tei:p[string-length(replace(., '\W', '')) &lt;= $p_string-length][1]"/>
     </xsl:template>
     <!-- generate documentation of change -->
     <xsl:template match="tei:revisionDesc">
         <xsl:copy>
             <xsl:apply-templates select="@*"/>
-            <xsl:element name="tei:change">
-                <xsl:attribute name="when"
-                    select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
+            <!-- <xsl:element name="tei:change">
+                <xsl:attribute name="when" select="format-date(current-date(), '[Y0001]-[M01]-[D01]')"/>
                 <xsl:attribute name="who" select="concat('#', $p_id-editor)"/>
                 <xsl:attribute name="xml:lang" select="'en'"/>
                 <xsl:attribute name="xml:id" select="$p_id-change"/>
@@ -120,7 +160,7 @@
                 <xsl:text>, using paragraphs with a length of </xsl:text>
                 <xsl:value-of select="$p_string-length"/>
                 <xsl:text> or less as indicator of a heading.</xsl:text>
-            </xsl:element>
+            </xsl:element>-->
             <xsl:apply-templates select="node()"/>
         </xsl:copy>
     </xsl:template>
