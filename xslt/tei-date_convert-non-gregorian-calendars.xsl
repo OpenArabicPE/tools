@@ -2,10 +2,10 @@
 <xsl:stylesheet version="2.0" xmlns="http://www.tei-c.org/ns/1.0" xmlns:oape="https://openarabicpe.github.io/ns" xmlns:tei="http://www.tei-c.org/ns/1.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xpath-default-namespace="http://www.tei-c.org/ns/1.0">
     <xsl:output encoding="UTF-8" indent="no" method="xml" omit-xml-declaration="no" version="1.0"/>
-    <xsl:include href="../../../xslt-calendar-conversion/functions/date-functions.xsl"/>
+    <xsl:import href="../../../xslt-calendar-conversion/functions/date-functions.xsl"/>
     <!-- this stylesheet goes through a TEI file and looks for all <tei:date> elements that have @when-custom but no @when attribute -->
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
+    <xsl:import href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- select whether to update existing conversions -->
     <xsl:param name="p_update-existing-dates" select="false()"/>
     <xsl:template match="@* | node()">
