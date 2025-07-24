@@ -35,7 +35,7 @@
         </xsl:copy>
     </xsl:template>
     <!-- convert hijri years only -->
-    <xsl:template match="tei:date[string-length(@when-custom) = 4]">
+    <xsl:template match="tei:date[string-length(@when-custom) = 4][@datingMethod]">
         <xsl:copy>
             <!-- this should remove faulty attributes -->
             <xsl:apply-templates select="@*[not( name() =  ('notBefore', 'notAfter'))]"/> 
