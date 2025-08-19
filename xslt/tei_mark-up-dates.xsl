@@ -5,9 +5,9 @@
     <xsl:output encoding="UTF-8" indent="no" method="xml" name="xml" omit-xml-declaration="no" version="1.0"/>
     <!-- include dating functions -->
 <!--    <xsl:include href="https://tillgrallert.github.io/xslt-calendar-conversion/functions/date-functions.xsl"/>-->
-        <xsl:include href="/Users/Shared/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
+        <xsl:import href="/Users/Shared/BachUni/BachBibliothek/GitHub/xslt-calendar-conversion/functions/date-functions.xsl"/>
     <!-- identify the author of the change by means of a @xml:id -->
-    <xsl:include href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
+    <xsl:import href="../../oxygen-project/OpenArabicPE_parameters.xsl"/>
     <!-- this param defines a threshold under which no tei:num/@value will be wrapped in tei:date -->
     <xsl:param name="p_treshold" select="100"/>
     <!-- identity transform -->
@@ -200,6 +200,9 @@
                         <xsl:choose>
                             <xsl:when test="@calendar">
                                 <xsl:value-of select="@calendar"/>
+                            </xsl:when>
+                            <xsl:when test="matches(., '^\d+\s+.+\s+\d{4}$')">
+                                <xsl:value-of select="oape:date-establish-calendar(., 'date', true())"/>
                             </xsl:when>
                             <xsl:otherwise>
                                 <xsl:value-of select="'#cal_gregorian'"/>
